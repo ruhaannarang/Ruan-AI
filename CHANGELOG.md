@@ -21,6 +21,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.1.0-alpha.3] - 2026-10-31
+
+### Added
+* Implemented dedicated local LM Studio integration service `lmStudioService.js` connecting to OpenAI-compatible endpoint `http://localhost:1234/v1`.
+* Configured and verified local **Ling 3.0 Tiny** (`ling-3.0-tiny`) model loaded in LM Studio.
+* Created Server-Sent Events (SSE) streaming endpoint `POST /api/chat/stream` supporting real-time incremental token delivery across network chunk boundaries.
+* Built server-side generation cancellation registry and `POST /api/chat/abort` endpoint using `AbortController` maps and client disconnect detection (`res.on('close')`), properly guarded with `res.writableEnded` and completion flags to prevent false aborts on normal stream termination.
+* Implemented payload validation strictly enforcing message roles (`system`, `user`, `assistant`), non-empty content strings, and safety length boundaries.
+* Suppressed internal model reasoning tokens (`delta.reasoning_content`) from user-facing streams; emitted clean `Thinking...` status event (`event: status`) while strictly streaming only final content tokens (`event: token`).
+* Synchronized version identifiers across `server/src/config/index.js`, `GET /api/health`, and all client/server package manifests to `0.1.0-alpha.3`.
+* Upgraded `GET /api/health` with dynamic LM Studio model detection, reporting connected status, active model, model availability, and available models list without blocking Express health checks.
+* Extended frontend API client `client/src/services/api.js` with `streamChat()` (readable response stream + SSE decoder) and `abortChat()` functions.
+* Updated live diagnostics modal to reflect verified online status and model readiness.
+
+---
+
 ## [0.1.0-alpha.2] - 2026-10-31
 
 ### Added

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { config } from './config/index.js';
 import healthRoutes from './routes/healthRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -29,6 +30,7 @@ if (config.nodeEnv === 'development') {
 
 // Mount core endpoints
 app.use('/api/health', healthRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Fallback 404 handler
 app.use((req, res) => {

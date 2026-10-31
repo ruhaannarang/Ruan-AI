@@ -53,9 +53,9 @@ Phase 6: Advanced Voice and Autonomous Capabilities
 * [x] Initialize `server/` using Node.js + Express with ES Modules.
 * [x] Implement decoupled health check endpoint (`/api/health`) separating Express server uptime from the readiness of LM Studio, STT, and TTS dependencies.
 * [x] Provide graceful connection error handling and user-friendly diagnostic banners.
-* [ ] Build LM Studio connector service (`/v1/chat/completions` OpenAI-compatible client with dynamic context length support).
-* [ ] Implement Server-Sent Events (SSE) streaming endpoint (`/api/chat/stream`).
-* [ ] Implement generation cancellation endpoint (`/api/chat/abort`).
+* [x] Build LM Studio connector service (`/v1/chat/completions` OpenAI-compatible client with dynamic context length support).
+* [x] Implement Server-Sent Events (SSE) streaming endpoint (`/api/chat/stream`).
+* [x] Implement generation cancellation endpoint (`/api/chat/abort`).
 * [ ] Build frontend Push-to-Talk recording service (`useAudioRecorder`).
 * [ ] Implement transient STT transcription endpoint (`/api/voice/transcribe`) evaluating `faster-whisper` vs `whisper.cpp`.
 * [ ] Implement streaming sentence-chunked TTS adapter (`ttsService.js`) evaluating `Piper` vs `Kokoro`.

@@ -1,6 +1,6 @@
 {
   "name": "ruan-ai-server",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.3",
   "description": "Backend API service and runtime gateway for Ruan AI",
   "type": "module",
   "main": "src/app.js",

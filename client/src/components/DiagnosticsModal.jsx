@@ -109,17 +109,22 @@ export default function DiagnosticsModal({
               {/* LM Studio */}
               <div className="subsystem-card">
                 <div className="subsystem-top font-mono">
-                  <span>🧠 LM STUDIO</span>
+                  <span>🧠 LM STUDIO RUNTIME</span>
                   <span className={`pill ${healthData?.services?.lmStudio?.status || 'uninitialized'}`}>
-                    {healthData?.services?.lmStudio?.status || 'Uninitialized'}
+                    {healthData?.services?.lmStudio?.status === 'connected' ? '● ONLINE' : (healthData?.services?.lmStudio?.status?.toUpperCase() || 'UNINITIALIZED')}
                   </span>
                 </div>
                 <div className="subsystem-props font-mono">
-                  <div><span>URL:</span> <strong>{healthData?.services?.lmStudio?.endpoint || 'http://localhost:1234/v1'}</strong></div>
-                  <div><span>MODEL:</span> <strong>{healthData?.services?.lmStudio?.activeModel || 'Not Finalized (To Be Selected)'}</strong></div>
+                  <div><span>ENDPOINT:</span> <strong>{healthData?.services?.lmStudio?.endpoint || 'http://localhost:1234/v1'}</strong></div>
+                  <div>
+                    <span>ACTIVE MODEL:</span> 
+                    <strong className={healthData?.services?.lmStudio?.modelAvailable ? 'green' : 'amber'}>
+                      {healthData?.services?.lmStudio?.activeModel || 'ling-3.0-tiny'} {healthData?.services?.lmStudio?.modelAvailable ? '✓' : '(UNLOADED)'}
+                    </strong>
+                  </div>
                 </div>
                 <p className="subsystem-note">
-                  {healthData?.services?.lmStudio?.note || 'Local LLM runtime connection pending Phase 1 integration.'}
+                  {healthData?.services?.lmStudio?.error || (healthData?.services?.lmStudio?.status === 'connected' ? 'Model verified and active in LM Studio. Ready for streaming inference.' : 'Local LLM runtime connection pending Phase 1 integration.')}
                 </p>
               </div>
 

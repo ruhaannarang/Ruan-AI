@@ -156,20 +156,20 @@ export default function App() {
 
         {/* Section 10: Footer */}
         <Footer onExploreDocs={handleScrollToDocs} />
-
-        {/* Live Diagnostics Modal */}
-        <DiagnosticsModal 
-          isOpen={isDiagnosticsOpen}
-          onClose={() => setIsDiagnosticsOpen(false)}
-          healthStatus={healthStatus}
-          healthData={healthData}
-          latency={latency}
-          errorMessage={errorMessage}
-          isRefreshing={isRefreshing}
-          lastChecked={lastChecked}
-          onRefresh={fetchHealth}
-        />
       </div>
+
+      {/* Live Diagnostics Modal - Rendered outside transformed container for correct viewport positioning */}
+      <DiagnosticsModal 
+        isOpen={isDiagnosticsOpen}
+        onClose={() => setIsDiagnosticsOpen(false)}
+        healthStatus={healthStatus}
+        healthData={healthData}
+        latency={latency}
+        errorMessage={errorMessage}
+        isRefreshing={isRefreshing}
+        lastChecked={lastChecked}
+        onRefresh={fetchHealth}
+      />
     </div>
   );
 }
