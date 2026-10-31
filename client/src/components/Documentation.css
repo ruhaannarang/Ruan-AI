@@ -1,0 +1,317 @@
+/* Documentation.css */
+.docs-section {
+  position: relative;
+  padding: 7rem 2rem;
+  background-color: var(--bg-primary);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.docs-container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.docs-header {
+  max-width: 820px;
+  margin-bottom: 3.5rem;
+}
+
+.docs-heading {
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 1.25rem;
+}
+
+.docs-heading-accent {
+  background: linear-gradient(135deg, #FFFFFF 20%, var(--accent-violet) 70%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.docs-sub {
+  font-size: 1.15rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+/* Documentation Grid */
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.doc-topic-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-card);
+}
+
+.doc-topic-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(139, 92, 246, 0.4);
+  background: var(--bg-card-hover);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+}
+
+.doc-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.6875rem;
+}
+
+.doc-category {
+  color: var(--accent-cyan);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.doc-arrow {
+  color: var(--text-dim);
+  font-size: 1rem;
+  transition: transform var(--transition-fast);
+}
+
+.doc-topic-card:hover .doc-arrow {
+  color: var(--accent-cyan);
+  transform: translate(2px, -2px);
+}
+
+.doc-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.doc-desc {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.doc-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  transition: color var(--transition-fast);
+}
+
+.doc-topic-card:hover .doc-footer {
+  color: #DDD6FE;
+}
+
+/* Modal Overlay & Drawer */
+.doc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(4, 6, 10, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 200ms ease-out;
+}
+
+.doc-modal-content {
+  background: #0D101C;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xl);
+  max-width: 720px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  animation: modalScale 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.doc-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 2rem 2.25rem 1.25rem 2.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.doc-modal-badge {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--accent-cyan);
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.doc-modal-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.doc-modal-close-btn {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  padding: 0.4rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.doc-modal-close-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.doc-modal-body {
+  padding: 2rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.doc-modal-summary {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #F1F5F9;
+}
+
+.doc-modal-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.steps-heading {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.doc-modal-steps ul {
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.doc-modal-steps li {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+/* Code Snippet Block */
+.doc-code-wrapper {
+  background: #06070B;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.doc-code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  background: #111524;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.code-title {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.btn-copy-code {
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  color: #CBD5E1;
+  cursor: pointer;
+}
+
+.btn-copy-code:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+.doc-code-block {
+  padding: 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #DDD6FE;
+  overflow-x: auto;
+}
+
+/* Modal Footer */
+.doc-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2.25rem;
+  background: #090C16;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.btn-modal-done {
+  padding: 0.55rem 1.25rem;
+  background: var(--accent-violet);
+  color: #FFFFFF;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-modal-done:hover {
+  background: var(--accent-violet-hover);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .docs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .docs-section {
+    padding: 4.5rem 1.25rem;
+  }
+  .docs-grid {
+    grid-template-columns: 1fr;
+  }
+  .doc-modal-header, .doc-modal-body, .doc-modal-footer {
+    padding: 1.25rem;
+  }
+}

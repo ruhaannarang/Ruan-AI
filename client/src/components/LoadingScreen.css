@@ -1,0 +1,278 @@
+/* LoadingScreen.css */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  overflow: hidden;
+  transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.loading-screen.fade-out {
+  opacity: 0;
+  transform: scale(1.05);
+  pointer-events: none;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  max-width: 480px;
+  width: 100%;
+}
+
+/* 3D Orbital System */
+.orbital-system {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+  margin-bottom: 2.5rem;
+}
+
+/* Glowing Core Orb */
+.core-orb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: corePulse 3s ease-in-out infinite alternate;
+}
+
+.core-center {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #FFFFFF 0%, var(--accent-cyan) 30%, var(--accent-violet) 75%, #4C1D95 100%);
+  box-shadow: 
+    0 0 25px rgba(139, 92, 246, 0.8),
+    0 0 50px rgba(103, 232, 249, 0.5),
+    inset 0 0 12px rgba(255, 255, 255, 0.6);
+}
+
+.core-glow {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, rgba(103, 232, 249, 0.2) 40%, transparent 70%);
+  filter: blur(12px);
+  animation: coreGlowBreathe 2.4s ease-in-out infinite alternate;
+}
+
+/* Concentric Orbital Rings */
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  pointer-events: none;
+}
+
+.ring-inner {
+  width: 110px;
+  height: 110px;
+  border-top-color: var(--accent-cyan);
+  border-right-color: rgba(103, 232, 249, 0.3);
+  border-bottom-color: rgba(139, 92, 246, 0.2);
+  border-left-color: var(--accent-violet);
+  transform: rotateX(65deg) rotateY(15deg);
+  animation: spinInner 4s linear infinite;
+  box-shadow: 0 0 12px rgba(103, 232, 249, 0.25);
+}
+
+.ring-middle {
+  width: 160px;
+  height: 160px;
+  border-top-color: rgba(139, 92, 246, 0.7);
+  border-right-color: transparent;
+  border-bottom-color: rgba(103, 232, 249, 0.6);
+  border-left-color: transparent;
+  transform: rotateX(50deg) rotateY(-25deg);
+  animation: spinMiddle 7s linear infinite reverse;
+}
+
+.ring-outer {
+  width: 210px;
+  height: 210px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-top-color: rgba(139, 92, 246, 0.5);
+  transform: rotateX(70deg) rotateZ(35deg);
+  animation: spinOuter 12s linear infinite;
+}
+
+/* Ambient Particles */
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+  opacity: 0.7;
+}
+
+.particle-1 {
+  top: 15%;
+  left: 20%;
+  animation: floatParticle1 4s ease-in-out infinite alternate;
+}
+
+.particle-2 {
+  bottom: 20%;
+  right: 18%;
+  background-color: var(--accent-violet);
+  box-shadow: 0 0 8px var(--accent-violet);
+  animation: floatParticle2 5s ease-in-out infinite alternate;
+}
+
+.particle-3 {
+  top: 60%;
+  left: 10%;
+  animation: floatParticle1 6s ease-in-out infinite alternate-reverse;
+}
+
+.particle-4 {
+  top: 25%;
+  right: 25%;
+  animation: floatParticle2 3.5s ease-in-out infinite alternate;
+}
+
+/* Branding & Status */
+.loading-branding {
+  margin-bottom: 1.5rem;
+}
+
+.loading-title {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  background: linear-gradient(180deg, #FFFFFF 30%, #94A3B8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textGlint 3s ease-in-out infinite;
+}
+
+.status-label-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pulsing-indicator {
+  color: var(--accent-violet);
+  font-size: 0.75rem;
+  animation: indicatorPulse 1.2s ease-in-out infinite;
+}
+
+.loading-status-text {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+/* Minimal Progress Bar */
+.progress-container {
+  width: 240px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-violet) 0%, var(--accent-cyan) 100%);
+  box-shadow: 0 0 10px rgba(103, 232, 249, 0.5);
+  transition: width 100ms ease-out;
+}
+
+.progress-percentage {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 2rem;
+}
+
+/* Skip Button */
+.skip-btn {
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.skip-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Keyframes */
+@keyframes corePulse {
+  0% { transform: scale(0.96); }
+  100% { transform: scale(1.04); }
+}
+
+@keyframes coreGlowBreathe {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  100% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes spinInner {
+  0% { transform: rotateX(65deg) rotateY(15deg) rotateZ(0deg); }
+  100% { transform: rotateX(65deg) rotateY(15deg) rotateZ(360deg); }
+}
+
+@keyframes spinMiddle {
+  0% { transform: rotateX(50deg) rotateY(-25deg) rotateZ(0deg); }
+  100% { transform: rotateX(50deg) rotateY(-25deg) rotateZ(360deg); }
+}
+
+@keyframes spinOuter {
+  0% { transform: rotateX(70deg) rotateZ(35deg) rotateY(0deg); }
+  100% { transform: rotateX(70deg) rotateZ(35deg) rotateY(360deg); }
+}
+
+@keyframes floatParticle1 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(15px, -18px); }
+}
+
+@keyframes floatParticle2 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-18px, 12px); }
+}
+
+@keyframes indicatorPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes textGlint {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 1; }
+}

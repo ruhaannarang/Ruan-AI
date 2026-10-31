@@ -1,51 +1,64 @@
 :root {
   /* Color Palette - Premium Dark Theme */
-  --bg-primary: #0a0b10;
-  --bg-secondary: #12141e;
-  --bg-card: rgba(22, 26, 40, 0.7);
-  --bg-card-hover: rgba(30, 36, 56, 0.8);
-  --bg-card-border: rgba(255, 255, 255, 0.08);
-  --bg-card-border-active: rgba(99, 102, 241, 0.35);
+  --bg-primary: #090B12;
+  --bg-secondary: #111522;
+  --bg-surface: #141929;
+  --bg-surface-elevated: #1a2035;
+  --bg-card: rgba(17, 21, 34, 0.75);
+  --bg-card-hover: rgba(26, 32, 53, 0.85);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+  --border-active: rgba(139, 92, 246, 0.45);
+  --border-cyan: rgba(103, 232, 249, 0.35);
 
   /* Brand Accents */
-  --accent-primary: #6366f1;
-  --accent-primary-hover: #4f46e5;
-  --accent-glow: rgba(99, 102, 241, 0.25);
-  --accent-secondary: #06b6d4;
+  --accent-violet: #8B5CF6;
+  --accent-violet-hover: #7C3AED;
+  --accent-violet-glow: rgba(139, 92, 246, 0.28);
+  --accent-cyan: #67E8F9;
+  --accent-cyan-hover: #38BDF8;
+  --accent-cyan-glow: rgba(103, 232, 249, 0.25);
 
-  /* Status Colors */
-  --status-success: #10b981;
+  /* Functional Status Colors */
+  --status-success: #10B981;
   --status-success-bg: rgba(16, 185, 129, 0.12);
   --status-success-border: rgba(16, 185, 129, 0.3);
   
-  --status-warning: #f59e0b;
+  --status-warning: #F59E0B;
   --status-warning-bg: rgba(245, 158, 11, 0.12);
   --status-warning-border: rgba(245, 158, 11, 0.3);
   
-  --status-error: #ef4444;
+  --status-error: #EF4444;
   --status-error-bg: rgba(239, 68, 68, 0.12);
   --status-error-border: rgba(239, 68, 68, 0.3);
 
-  --status-neutral: #64748b;
+  --status-neutral: #64748B;
   --status-neutral-bg: rgba(100, 116, 139, 0.12);
   --status-neutral-border: rgba(100, 116, 139, 0.25);
 
   /* Typography */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Outfit', 'Inter', sans-serif;
+  --text-primary: #F4F4F5;
+  --text-muted: #9296A5;
+  --text-dim: #64687a;
+  --font-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
 
   /* Geometry & Elevation */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
   --radius-full: 9999px;
-  --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  --shadow-glow: 0 0 24px -4px var(--accent-glow);
+
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+  --shadow-glow-violet: 0 0 35px -5px rgba(139, 92, 246, 0.35);
+  --shadow-glow-cyan: 0 0 30px -5px rgba(103, 232, 249, 0.25);
+  --shadow-glass: inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
 
   /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-normal: 250ms ease;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }

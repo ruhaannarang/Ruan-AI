@@ -1,32 +1,55 @@
 @import './variables.css';
 
-/* Modern CSS Reset */
+/* Modern CSS Reset & Box Sizing */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-image: 
-    radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+    radial-gradient(circle at 18% 15%, rgba(139, 92, 246, 0.09) 0%, transparent 45%),
+    radial-gradient(circle at 82% 70%, rgba(103, 232, 249, 0.06) 0%, transparent 45%),
+    linear-gradient(180deg, #090B12 0%, #0c0f18 50%, #090B12 100%);
   background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* Text Selection */
+::selection {
+  background: rgba(139, 92, 246, 0.35);
+  color: #FFFFFF;
 }
 
 /* Typography Defaults */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-weight: 600;
   color: var(--text-primary);
-  line-height: 1.25;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+p {
+  color: var(--text-muted);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
 button {
@@ -34,17 +57,23 @@ button {
   cursor: pointer;
   border: none;
   background: none;
+  outline: none;
+  transition: all var(--transition-fast);
 }
 
-code, pre {
-  font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 0.875rem;
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 3px;
+}
+
+code, pre, .font-mono {
+  font-family: var(--font-mono);
 }
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -52,10 +81,21 @@ code, pre {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
+  border: 2px solid var(--bg-primary);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(139, 92, 246, 0.4);
+}
+
+/* Accessibility: Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

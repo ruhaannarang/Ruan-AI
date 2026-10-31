@@ -21,6 +21,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.1.0-alpha.2] - 2026-10-31
+
+### Added
+* Designed and built the premium public-facing website for Ruan AI using React + Vite + Vanilla CSS (zero Tailwind CSS or heavy component libraries).
+* Created cinematic animated initialization screen (`LoadingScreen`) featuring a central expanding orb, rotating 3D orbital rings, dynamic phase messaging, and smooth exit transitions.
+* Implemented synthesized Web Audio API sound identity engine (`sound.js`) with subtle harmonic chimes, click ticks, and transition effects (muted by default with global toggle).
+* Engineered interactive 3D AI Orb hero centerpiece with rotating orbital layers, specular core highlights, interactive mouse parallax tilt, and telemetry enclave badge.
+* Developed 10 comprehensive website sections:
+  1. Sticky navigation with blur backdrop, audio toggle, and live gateway telemetry badge.
+  2. Hero section with tagline *"Your AI. Your Machine. Your Rules."*, orb centerpiece, and CTAs.
+  3. About section with vision manifesto and interactive *Cloud AI vs Ruan Local Companion* matrix.
+  4. Core Capabilities showcase with 6 distinct visual layouts (Terminal stream, Push-to-Talk waveform, SQLite memory graph, LangGraph approval gate, Sandbox inspector, and Enclave shield).
+  5. Interactive Modular Architecture visualizer with toggles between *System Topology* and *Streaming Voice Pipeline* with abort circuit banner.
+  6. Privacy & Security section outlining 6 architectural pillars and honest security commitment.
+  7. Interactive Documentation section with built-in modal reader and code copy tool for 9 topics.
+  8. Development Roadmap featuring Phase 1 to Phase 6 evolution timeline with verified status badges.
+  9. Final sovereign computing callout with direct link to GitHub repository.
+  10. Minimalist dark-first footer with copyright and navigation.
+* Integrated live Node diagnostics modal connecting to `GET /api/health` displaying Express gateway status, roundtrip latency, uptime, and decoupled service readiness.
+
+---
+
 ## [0.1.0-alpha.1] - 2026-10-31
 
 ### Added

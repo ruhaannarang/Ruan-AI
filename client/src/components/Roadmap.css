@@ -1,0 +1,233 @@
+/* Roadmap.css */
+.roadmap-section {
+  position: relative;
+  padding: 7rem 2rem;
+  background-color: var(--bg-primary);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.roadmap-container {
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.roadmap-header {
+  max-width: 820px;
+  margin-bottom: 4.5rem;
+}
+
+.roadmap-heading {
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 1.25rem;
+}
+
+.roadmap-heading-accent {
+  background: linear-gradient(135deg, #FFFFFF 20%, var(--accent-violet) 70%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.roadmap-sub {
+  font-size: 1.15rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+/* Timeline */
+.roadmap-timeline {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.timeline-entry {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 2rem;
+  position: relative;
+  padding-bottom: 3rem;
+}
+
+.timeline-entry:last-child {
+  padding-bottom: 0;
+}
+
+/* Marker & Vertical Stem */
+.timeline-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.marker-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+  border: 3px solid var(--border-medium);
+  z-index: 2;
+  transition: all var(--transition-normal);
+}
+
+.marker-dot.in-progress {
+  border-color: var(--accent-cyan);
+  background: var(--accent-violet);
+  box-shadow: 0 0 16px var(--accent-cyan);
+}
+
+.marker-dot.planned {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: #111522;
+}
+
+.timeline-stem {
+  position: absolute;
+  top: 18px;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.timeline-entry.in-progress .timeline-stem {
+  background: linear-gradient(180deg, var(--accent-cyan) 0%, rgba(255, 255, 255, 0.08) 100%);
+}
+
+/* Timeline Card */
+.timeline-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-normal);
+}
+
+.timeline-entry.in-progress .timeline-card {
+  border-color: rgba(103, 232, 249, 0.35);
+  background: linear-gradient(180deg, rgba(17, 21, 34, 0.9) 0%, rgba(13, 16, 26, 0.95) 100%);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 25px rgba(103, 232, 249, 0.1);
+}
+
+.timeline-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateX(4px);
+}
+
+.timeline-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
+}
+
+.phase-pill-number {
+  padding: 0.25rem 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: #F1F5F9;
+  font-weight: 600;
+}
+
+.phase-status-badge {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.phase-status-badge.in-progress {
+  color: var(--accent-cyan);
+}
+
+.phase-status-badge.planned {
+  color: var(--text-dim);
+}
+
+.phase-timeline-text {
+  margin-left: auto;
+  color: var(--text-dim);
+}
+
+.phase-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.phase-desc {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+/* Items List */
+.phase-items-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1.5rem;
+  list-style: none;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.item-check {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.85rem;
+}
+
+.item-check.done {
+  color: #E2E8F0;
+}
+
+.item-check.done .check-icon {
+  color: var(--status-success);
+  font-weight: 700;
+}
+
+.item-check.in-progress {
+  color: #E2E8F0;
+}
+
+.item-check.in-progress .check-icon {
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+
+.item-check.planned {
+  color: var(--text-dim);
+}
+
+.item-check.planned .check-icon {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .timeline-entry {
+    grid-template-columns: 24px 1fr;
+    gap: 1.25rem;
+  }
+  .timeline-card {
+    padding: 1.5rem;
+  }
+  .phase-items-list {
+    grid-template-columns: 1fr;
+  }
+  .phase-timeline-text {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .roadmap-section {
+    padding: 4.5rem 1.25rem;
+  }
+}
