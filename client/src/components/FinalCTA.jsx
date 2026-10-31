@@ -2,7 +2,7 @@ import React from 'react';
 import { playClickSound } from '../services/sound';
 import './FinalCTA.css';
 
-export default function FinalCTA({ onExploreDocs, onOpenDiagnostics }) {
+export default function FinalCTA({ onExploreDocs, onOpenDiagnostics, onLaunchApp }) {
   const handleScrollTop = () => {
     playClickSound();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -27,16 +27,16 @@ export default function FinalCTA({ onExploreDocs, onOpenDiagnostics }) {
           </p>
 
           <div className="final-cta-actions">
-            <a 
-              href="https://github.com/ruhaannarang/Ruan-AI" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <button
               className="btn-cta-primary"
-              onClick={playClickSound}
+              onClick={() => {
+                playClickSound();
+                if (onLaunchApp) onLaunchApp();
+              }}
             >
-              <span>Explore the Project on GitHub</span>
-              <span className="btn-ext-icon" aria-hidden="true">↗</span>
-            </a>
+              <span>Launch Ruan AI App</span>
+              <span className="btn-arrow" aria-hidden="true">→</span>
+            </button>
 
             <button 
               className="btn-cta-secondary"

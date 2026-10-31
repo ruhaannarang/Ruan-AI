@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { playClickSound } from '../services/sound';
 import './Hero.css';
 
-export default function Hero({ onExploreDocs, onExploreCapabilities }) {
+export default function Hero({ onExploreDocs, onExploreCapabilities, onLaunchApp }) {
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
   const heroRef = useRef(null);
 
@@ -22,7 +22,7 @@ export default function Hero({ onExploreDocs, onExploreCapabilities }) {
   return (
     <section 
       className="hero-section" 
-      id="hero"
+      id="hero" 
       ref={heroRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleResetMouse}
@@ -63,10 +63,14 @@ export default function Hero({ onExploreDocs, onExploreCapabilities }) {
               id="cta-explore-ruan"
               onClick={() => {
                 playClickSound();
-                onExploreCapabilities();
+                if (onLaunchApp) {
+                  onLaunchApp();
+                } else {
+                  onExploreCapabilities();
+                }
               }}
             >
-              <span>Explore Ruan</span>
+              <span>Launch Ruan AI</span>
               <span className="btn-arrow" aria-hidden="true">→</span>
             </button>
 

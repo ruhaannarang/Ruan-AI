@@ -14,13 +14,25 @@ import Roadmap from './components/Roadmap';
 import FinalCTA from './components/FinalCTA';
 import Footer from './components/Footer';
 import DiagnosticsModal from './components/DiagnosticsModal';
+import ChatPage from './pages/ChatPage';
 
 import './styles/App.css';
 
 export default function App() {
+  // Path routing: Support / (Landing Page) and /app (Conversation Interface)
+  const [currentRoute, setCurrentRoute] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        return window.location.pathname.startsWith('/app') ? '/app' : '/';
+      }
+    } catch {}
+    return '/';
+  });
+
   const [isInitialized, setIsInitialized] = useState(() => {
     try {
       if (typeof window !== 'undefined') {
+        if (window.location.pathname.startsWith('/app')) return true;
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const alreadyVisited = sessionStorage.getItem('ruan_initialized') === 'true';
         return prefersReducedMotion || alreadyVisited;
@@ -29,6 +41,25 @@ export default function App() {
     return false;
   });
   const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
+
+  // Sync state with browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        setCurrentRoute(window.location.pathname.startsWith('/app') ? '/app' : '/');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateTo = useCallback((path) => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', path);
+      setCurrentRoute(path.startsWith('/app') ? '/app' : '/');
+      window.scrollTo(0, 0);
+    }
+  }, []);
 
   // Health and Gateway Telemetry State
   const [healthStatus, setHealthStatus] = useState('checking'); // 'checking' | 'connected' | 'error'
@@ -108,55 +139,68 @@ export default function App() {
 
   return (
     <div className="ruan-app" id="ruan-app-root">
-      {/* Cinematic Animated Initialization Screen */}
-      {!isInitialized && (
-        <LoadingScreen onComplete={() => setIsInitialized(true)} />
-      )}
-
-      {/* Main Website Experience */}
-      <div className={`site-content ${isInitialized ? 'visible' : 'initial-hidden'}`}>
-        {/* Navigation */}
-        <Navbar 
+      {/* Route: /app (Dedicated Conversation Application) */}
+      {currentRoute === '/app' ? (
+        <ChatPage
+          navigateTo={navigateTo}
           onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
-          backendConnected={healthStatus === 'connected'}
-          latency={latency}
         />
+      ) : (
+        <>
+          {/* Cinematic Animated Initialization Screen (Landing Page only) */}
+          {!isInitialized && (
+            <LoadingScreen onComplete={() => setIsInitialized(true)} />
+          )}
 
-        <main id="main-content">
-          {/* Section 2: Hero */}
-          <Hero 
-            onExploreDocs={handleScrollToDocs}
-            onExploreCapabilities={handleScrollToCapabilities}
-          />
+          {/* Main Website Experience */}
+          <div className={`site-content ${isInitialized ? 'visible' : 'initial-hidden'}`}>
+            {/* Navigation */}
+            <Navbar 
+              onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
+              onLaunchApp={() => navigateTo('/app')}
+              backendConnected={healthStatus === 'connected'}
+              latency={latency}
+            />
 
-          {/* Section 3: About Ruan AI */}
-          <About />
+            <main id="main-content">
+              {/* Section 2: Hero */}
+              <Hero 
+                onExploreDocs={handleScrollToDocs}
+                onExploreCapabilities={handleScrollToCapabilities}
+                onLaunchApp={() => navigateTo('/app')}
+              />
 
-          {/* Section 4: Core Capabilities */}
-          <Capabilities />
+              {/* Section 3: About Ruan AI */}
+              <About />
 
-          {/* Section 5: Modular Architecture */}
-          <Architecture />
+              {/* Section 4: Core Capabilities */}
+              <Capabilities />
 
-          {/* Section 6: Privacy and Security */}
-          <Privacy />
+              {/* Section 5: Modular Architecture */}
+              <Architecture />
 
-          {/* Section 7: Documentation */}
-          <Documentation />
+              {/* Section 6: Privacy and Security */}
+              <Privacy />
 
-          {/* Section 8: Roadmap */}
-          <Roadmap />
+              {/* Section 7: Documentation */}
+              <Documentation />
 
-          {/* Section 9: Final CTA */}
-          <FinalCTA 
-            onExploreDocs={handleScrollToDocs}
-            onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
-          />
-        </main>
+              {/* Section 8: Roadmap */}
+              <Roadmap />
 
-        {/* Section 10: Footer */}
-        <Footer onExploreDocs={handleScrollToDocs} />
-      </div>
+              {/* Section 9: Final CTA */}
+              <FinalCTA 
+                onExploreDocs={handleScrollToDocs}
+                onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
+                onLaunchApp={() => navigateTo('/app')}
+              />
+            </main>
+
+            {/* Section 10: Footer */}
+            <Footer onExploreDocs={handleScrollToDocs} />
+          </div>
+        </>
+      )}
 
       {/* Live Diagnostics Modal - Rendered outside transformed container for correct viewport positioning */}
       <DiagnosticsModal 

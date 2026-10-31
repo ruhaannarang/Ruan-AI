@@ -104,20 +104,31 @@ export async function streamChat(req, res, next) {
   let sseStarted = false;
   let isCompletedNormally = false;
   let isThinking = false;
+  let reader = null;
 
-  const cleanup = () => {
-    activeGenerations.delete(requestId);
-  };
-
-  // When client terminates connection prematurely, abort upstream LM Studio fetch.
-  // Distinguish genuine premature disconnects from normally completed responses by checking writableEnded and isCompletedNormally.
-  res.on('close', () => {
+  // Handler for premature client disconnections
+  const handleClientClose = () => {
     if (!res.writableEnded && !isCompletedNormally) {
       console.log(`[Chat-Stream] Client disconnected prematurely for request ${requestId}. Aborting upstream generation.`);
       abortController.abort('CLIENT_DISCONNECTED');
     }
     cleanup();
-  });
+  };
+
+  const cleanup = () => {
+    activeGenerations.delete(requestId);
+    res.removeListener('close', handleClientClose);
+    if (reader) {
+      try {
+        reader.releaseLock();
+      } catch {
+        // Stream may already be closed or released
+      }
+    }
+  };
+
+  // When client terminates connection prematurely, abort upstream LM Studio fetch
+  res.on('close', handleClientClose);
 
   try {
     const { stream, model } = await lmStudioService.streamChatCompletion({
@@ -145,7 +156,7 @@ export async function streamChat(req, res, next) {
     });
 
     // Stream and parse incoming SSE chunks across network boundaries
-    const reader = stream.getReader();
+    reader = stream.getReader();
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     let finishReason = 'stop';

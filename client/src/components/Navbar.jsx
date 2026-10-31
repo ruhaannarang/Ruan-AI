@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getSoundStatus, toggleSound, playClickSound } from '../services/sound';
 import './Navbar.css';
 
-export default function Navbar({ onOpenDiagnostics, backendConnected, latency }) {
+export default function Navbar({ onOpenDiagnostics, onLaunchApp, backendConnected, latency }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(getSoundStatus());
@@ -28,6 +28,12 @@ export default function Navbar({ onOpenDiagnostics, backendConnected, latency })
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleLaunch = () => {
+    playClickSound();
+    setMobileMenuOpen(false);
+    if (onLaunchApp) onLaunchApp();
   };
 
   return (
@@ -88,14 +94,14 @@ export default function Navbar({ onOpenDiagnostics, backendConnected, latency })
             </span>
           </button>
 
-          {/* Primary CTA */}
-          <a 
-            href="#capabilities" 
+          {/* Primary CTA - Launch Ruan App */}
+          <button 
             className="btn-primary-cta"
-            onClick={(e) => handleNavClick(e, 'capabilities')}
+            onClick={handleLaunch}
+            aria-label="Launch Ruan AI conversation interface"
           >
-            Explore Ruan
-          </a>
+            Launch Ruan →
+          </button>
 
           {/* Mobile Menu Toggle Button */}
           <button 
@@ -134,13 +140,12 @@ export default function Navbar({ onOpenDiagnostics, backendConnected, latency })
             >
               ⚙ View Node Diagnostics
             </button>
-            <a 
-              href="#capabilities" 
+            <button 
               className="mobile-cta-btn"
-              onClick={(e) => handleNavClick(e, 'capabilities')}
+              onClick={handleLaunch}
             >
-              Explore Ruan AI
-            </a>
+              Launch Ruan AI App →
+            </button>
           </div>
         </div>
       )}

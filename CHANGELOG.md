@@ -33,6 +33,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 * Synchronized version identifiers across `server/src/config/index.js`, `GET /api/health`, and all client/server package manifests to `0.1.0-alpha.3`.
 * Upgraded `GET /api/health` with dynamic LM Studio model detection, reporting connected status, active model, model availability, and available models list without blocking Express health checks.
 * Extended frontend API client `client/src/services/api.js` with `streamChat()` (readable response stream + SSE decoder) and `abortChat()` functions.
+* Built the dedicated Ruan AI conversation application (`/app`) separate from the public landing page, with lightweight pathname routing and back/forward browser navigation support.
+* Designed and implemented premium dark UI inspired by desktop tools (Raycast/Linear) using 100% Vanilla CSS:
+  * Collapsible, responsive `Sidebar` with wordmark, search conversations filtering, recent chats feed with active glowing indicator, delete with confirmation, and system diagnostics entry.
+  * Welcome screen with animated Ruan AI orb centerpiece and 4 interactive prompt suggestion cards.
+  * `MessageList` and `MessageBubble` supporting user cards, assistant avatar, Thinking indicators, streaming cursor, timestamps, and full response copy button.
+  * Safe React-based `MarkdownRenderer` and `CodeBlock` with line numbers, syntax highlighting (keywords, strings, numbers, comments), language badge, and one-click code copy.
+  * `MessageComposer` with auto-expanding textarea, Enter to send, Shift+Enter for newline, generation stop button with red pulse, and keyboard shortcuts.
+  * `ModelStatus` compact pill and popover displaying real-time Express backend and LM Studio connection status with automatic 20-second polling.
+  * `useChat` hook managing multi-turn conversation state, system instruction enforcement, stream isolation between chats, and generation abort cleanup.
 * Updated live diagnostics modal to reflect verified online status and model readiness.
 
 ---

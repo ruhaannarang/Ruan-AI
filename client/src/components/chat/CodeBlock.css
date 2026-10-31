@@ -1,0 +1,123 @@
+.ruan-code-block {
+  margin: 14px 0;
+  border-radius: var(--radius-md);
+  background: #0d101a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5);
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.code-lang-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.code-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.code-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.code-copy-btn.copied {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.copy-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.check-icon {
+  color: #34D399;
+}
+
+.code-content-wrapper {
+  overflow-x: auto;
+  padding: 12px 0;
+}
+
+.code-pre {
+  margin: 0;
+  padding: 0 14px;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+.code-line {
+  display: flex;
+  min-height: 1.6em;
+}
+
+.line-number {
+  flex-shrink: 0;
+  width: 32px;
+  padding-right: 14px;
+  text-align: right;
+  color: rgba(146, 150, 165, 0.35);
+  user-select: none;
+  font-size: 0.78rem;
+}
+
+.line-content {
+  flex: 1;
+}
+
+/* Syntax Token Colors (Tailored dark theme) */
+.tok-keyword {
+  color: #C084FC; /* Violet/Purple */
+  font-weight: 600;
+}
+
+.tok-string {
+  color: #67E8F9; /* Cyan */
+}
+
+.tok-comment {
+  color: #64748B; /* Slate Muted */
+  font-style: italic;
+}
+
+.tok-number {
+  color: #FBBF24; /* Amber */
+}
+
+.tok-function {
+  color: #93C5FD; /* Soft Blue */
+}
+
+.tok-punctuation {
+  color: #94A3B8;
+}
+
+.tok-plain {
+  color: #F1F5F9;
+}

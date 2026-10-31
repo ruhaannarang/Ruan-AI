@@ -2,8 +2,8 @@
 
 This document outlines the six planned phases for developing **Ruan AI**. Each phase builds incrementally on previous stable milestones.
 
-> **Current Project Status (as of 2026-10-31):**
-> **Phase 1 Foundation Implemented.** React + Vite frontend, Node.js + Express backend (ES Modules), environment configurations, and decoupled health checks (`/api/health`) are active. LM Studio integration and voice candidate evaluations are next in progress.
+> **Current Project Status (as of 2026-10-31 — v0.1.0-alpha.3):**
+> **Phase 1 LM Studio & Streaming Integration Complete.** React + Vite frontend, Node.js + Express backend (ES Modules), LM Studio streaming (`POST /api/chat/stream`), reasoning token suppression, generation abort (`POST /api/chat/abort`), and decoupled health checks (`/api/health`) are active and verified with Ling 3.0 Tiny. Phase 1.5 conversation interface is in active implementation.
 
 ---
 
