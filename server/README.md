@@ -35,7 +35,7 @@ The server is the core operational brain of Ruan AI:
 
 ## Technology Stack
 
-* **Runtime:** Node.js (v18+ recommended)
+* **Runtime:** Node.js (v20.x or v22.x LTS recommended)
 * **Framework:** Express.js (ES Modules)
 * **Speech-to-Text Candidates:** `faster-whisper` / `whisper.cpp` (Evaluated on CPU)
 * **Text-to-Speech Candidates:** `Piper` / `Kokoro` (Evaluated for streaming sentence chunks and instant cancel)

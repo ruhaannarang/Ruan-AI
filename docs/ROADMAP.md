@@ -3,15 +3,16 @@
 This document outlines the six planned phases for developing **Ruan AI**. Each phase builds incrementally on previous stable milestones.
 
 > **Current Project Status (as of 2026-10-31):**
-> Repository structure and architecture documentation initialized. Application code has **not yet been implemented**. All phases listed below represent future development milestones.
+> **Phase 1 Foundation Implemented.** React + Vite frontend, Node.js + Express backend (ES Modules), environment configurations, and decoupled health checks (`/api/health`) are active. LM Studio integration and voice candidate evaluations are next in progress.
 
 ---
 
 ## Roadmap Overview
 
 ```text
-Phase 1: Core Foundation + Basic Voice Assistant (Next Up)
-  └── Chat UI, LM Studio Streaming, Push-to-Talk, Candidate STT & TTS, Audio Controls
+Phase 1: Core Foundation + Basic Voice Assistant (Foundation Done / AI In Progress)
+  ├── [x] Client (React + Vite), Server (Express), Decoupled Health Check
+  └── [ ] LM Studio Streaming, Push-to-Talk, Candidate STT & TTS, Audio Controls
       ▼
 Phase 2: Persistent Memory
   └── SQLite persistence, Session history, Long-term memory retrieval
@@ -47,19 +48,19 @@ Phase 6: Advanced Voice and Autonomous Capabilities
 9. **Stop / Interrupt Playback:** Ability to immediately silence voice playback, flush the local queue, and abort backend generation via `/api/chat/abort`.
 10. **Mode Switching:** Seamless toggle between **Voice Mode** (spoken audio + text) and **Text-Only Mode** (silent text streaming) within the same conversation thread.
 
-### Checklist
-* [ ] Initialize `client/` using Vite + React with modern Vanilla CSS design system (dark mode, glassmorphism tokens, audio indicators).
-* [ ] Initialize `server/` using Node.js + Express with ES Modules.
+### Milestone Checklist
+* [x] Initialize `client/` using Vite + React with modern Vanilla CSS design system (dark mode, glassmorphism tokens, audio indicators).
+* [x] Initialize `server/` using Node.js + Express with ES Modules.
+* [x] Implement decoupled health check endpoint (`/api/health`) separating Express server uptime from the readiness of LM Studio, STT, and TTS dependencies.
+* [x] Provide graceful connection error handling and user-friendly diagnostic banners.
 * [ ] Build LM Studio connector service (`/v1/chat/completions` OpenAI-compatible client with dynamic context length support).
 * [ ] Implement Server-Sent Events (SSE) streaming endpoint (`/api/chat/stream`).
 * [ ] Implement generation cancellation endpoint (`/api/chat/abort`).
-* [ ] Implement decoupled health check endpoint (`/api/health`) separating Express server uptime from the readiness of LM Studio, STT, and TTS dependencies.
 * [ ] Build frontend Push-to-Talk recording service (`useAudioRecorder`).
 * [ ] Implement transient STT transcription endpoint (`/api/voice/transcribe`) evaluating `faster-whisper` vs `whisper.cpp`.
 * [ ] Implement streaming sentence-chunked TTS adapter (`ttsService.js`) evaluating `Piper` vs `Kokoro`.
 * [ ] Build frontend audio playback manager with instant interrupt/stop controls (`useAudioPlayer`).
 * [ ] Build UI toggle between Text-Only Mode and Voice Mode on the shared conversation thread.
-* [ ] Provide graceful connection error handling and user-friendly diagnostic banners.
 
 **Delivery Criteria:** A user can type or hold push-to-talk to speak a prompt, have it transcribed locally, generate a streamed text response via LM Studio, hear the response spoken aloud locally via TTS sentence chunks, interrupt playback at will, or toggle into silent text-only mode—all within a shared conversation history.
 
@@ -143,7 +144,7 @@ Phase 6: Advanced Voice and Autonomous Capabilities
 | Phase | Title | Target Scope | Status |
 |---|---|---|---|
 | **Phase 0** | Repository & Architecture Specs | Initial documentation, directory layout, ADR setup | **Completed** |
-| **Phase 1** | Core Foundation + Basic Voice Assistant | Unified Chat, LM Studio Stream, Push-to-Talk, Candidate STT & TTS, Audio Interrupt | Planned / Next |
+| **Phase 1** | Core Foundation + Basic Voice Assistant | Foundation initialized (React, Vite, Express, Health Check); LM Studio & Voice pending | **In Progress** |
 | **Phase 2** | Persistent Memory | SQLite DB, Conversation history, Memory tiers | Planned |
 | **Phase 3** | Agentic Intelligence and LangGraph | LangGraph.js, Tool calling, Human-in-the-loop | Planned |
 | **Phase 4** | Computer Interaction | Local file search, Doc reader, App launcher, Permission gates | Planned |

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { checkHealth } from './services/api';
 import './styles/App.css';
 
@@ -11,29 +11,74 @@ export default function App() {
   const [showPayload, setShowPayload] = useState(false);
   const [lastChecked, setLastChecked] = useState(null);
 
-  const fetchHealth = async () => {
-    setIsRefreshing(true);
-    const result = await checkHealth();
+  // Refs for tracking in-flight requests and preventing race conditions / stale updates
+  const activeAbortControllerRef = useRef(null);
+  const latestRequestIdRef = useRef(0);
 
-    if (result.success) {
-      setHealthStatus('connected');
-      setHealthData(result.data);
-      setLatency(result.latencyMs);
-      setErrorMessage(null);
-    } else {
-      setHealthStatus('error');
-      setHealthData(null);
-      setLatency(result.latencyMs);
-      setErrorMessage(result.error);
+  const fetchHealth = useCallback(async () => {
+    // Cancel any previous in-flight request
+    if (activeAbortControllerRef.current) {
+      activeAbortControllerRef.current.abort();
     }
 
-    setLastChecked(new Date().toLocaleTimeString());
-    setIsRefreshing(false);
-  };
+    // Create a new controller for this request
+    const controller = new AbortController();
+    activeAbortControllerRef.current = controller;
+
+    // Track request ID to discard stale responses
+    const currentRequestId = ++latestRequestIdRef.current;
+    setIsRefreshing(true);
+
+    try {
+      const result = await checkHealth(controller.signal);
+
+      // If aborted, do not update component state
+      if (result.aborted) {
+        return;
+      }
+
+      // Ignore responses from outdated / superseded requests
+      if (currentRequestId !== latestRequestIdRef.current) {
+        return;
+      }
+
+      if (result.success) {
+        setHealthStatus('connected');
+        setHealthData(result.data);
+        setLatency(result.latencyMs);
+        setErrorMessage(null);
+      } else {
+        setHealthStatus('error');
+        setHealthData(null);
+        setLatency(result.latencyMs);
+        setErrorMessage(result.error);
+      }
+
+      setLastChecked(new Date().toLocaleTimeString());
+    } catch (err) {
+      // Guard against unexpected runtime exceptions
+      if (currentRequestId === latestRequestIdRef.current) {
+        setHealthStatus('error');
+        setHealthData(null);
+        setErrorMessage(err.message || 'An unexpected error occurred while checking health.');
+      }
+    } finally {
+      if (currentRequestId === latestRequestIdRef.current) {
+        setIsRefreshing(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchHealth();
-  }, []);
+
+    // Cleanup: cancel in-flight request when component unmounts
+    return () => {
+      if (activeAbortControllerRef.current) {
+        activeAbortControllerRef.current.abort();
+      }
+    };
+  }, [fetchHealth]);
 
   return (
     <div className="app-container" id="app-root">
@@ -63,7 +108,7 @@ export default function App() {
                 {healthStatus === 'error' && 'Express Backend Disconnected'}
               </h2>
               <p>
-                {healthStatus === 'connected' && 'API Gateway is online and responding via HTTP /api/health.'}
+                {healthStatus === 'connected' && 'Express API Gateway is verified and actively responding via HTTP /api/health.'}
                 {healthStatus === 'checking' && 'Checking local loopback service on port 5000...'}
                 {healthStatus === 'error' && 'Failed to communicate with Express service.'}
               </p>
@@ -85,7 +130,7 @@ export default function App() {
         {/* Server Metrics */}
         <div className="metrics-row">
           <div className="metric-item">
-            <span className="metric-label">Status Code</span>
+            <span className="metric-label">Server Status</span>
             <span className={`metric-badge ${healthStatus === 'connected' ? 'green' : 'red'}`}>
               {healthStatus === 'connected' ? '200 OK' : 'OFFLINE'}
             </span>
@@ -126,76 +171,91 @@ export default function App() {
       {/* Decoupled Services Diagnostics Grid */}
       <section aria-labelledby="services-heading">
         <h3 className="section-heading" id="services-heading">
-          Decoupled AI Services Architecture
+          Decoupled AI Dependencies
         </h3>
+        <p className="dependencies-notice">
+          The Express server is online. External AI runtimes (LM Studio, STT, TTS) are architecturally decoupled and are currently <strong>uninitialized</strong> pending Phase 1 integration.
+        </p>
 
         <div className="services-grid">
           {/* LM Studio Card */}
           <div className="service-card" id="card-service-lmstudio">
             <div className="service-card-top">
               <span className="service-card-title">🧠 LM Studio Runtime</span>
-              <span className="service-status-pill standby">
-                {healthData?.services?.lmStudio?.status || 'Standby'}
+              <span className={`service-status-pill ${healthData?.services?.lmStudio?.status || 'uninitialized'}`}>
+                {healthData?.services?.lmStudio?.status || 'Uninitialized'}
               </span>
             </div>
             <div className="service-info-list">
               <div className="service-info-row">
-                <span>Endpoint</span>
+                <span>Configured Endpoint</span>
                 <strong>{healthData?.services?.lmStudio?.endpoint || 'http://localhost:1234/v1'}</strong>
               </div>
               <div className="service-info-row">
-                <span>Model Profile</span>
-                <strong>Configurable (7B Q4)</strong>
+                <span>Model Selection</span>
+                <strong>{healthData?.services?.lmStudio?.activeModel || 'Not Finalized (To Be Selected)'}</strong>
+              </div>
+              <div className="service-info-row">
+                <span>Readiness</span>
+                <span className="metric-badge amber">Pending Connection</span>
               </div>
             </div>
             <div className="service-note">
-              {healthData?.services?.lmStudio?.note || 'Pending Phase 1 streaming integration.'}
+              {healthData?.services?.lmStudio?.note || 'Local LLM runtime connection pending Phase 1 integration.'}
             </div>
           </div>
 
           {/* STT Candidate Card */}
           <div className="service-card" id="card-service-stt">
             <div className="service-card-top">
-              <span className="service-card-title">🎙️ Speech-to-Text</span>
-              <span className="service-status-pill standby">
-                {healthData?.services?.stt?.status || 'Candidate Standby'}
+              <span className="service-card-title">🎙️ Speech-to-Text (STT)</span>
+              <span className={`service-status-pill ${healthData?.services?.stt?.status || 'uninitialized'}`}>
+                {healthData?.services?.stt?.status || 'Uninitialized'}
               </span>
             </div>
             <div className="service-info-list">
               <div className="service-info-row">
-                <span>Candidates</span>
+                <span>Evaluated Candidates</span>
                 <strong>faster-whisper / whisper.cpp</strong>
               </div>
               <div className="service-info-row">
-                <span>Capture Mode</span>
+                <span>Capture Policy</span>
                 <strong>Push-to-Talk (Transient)</strong>
+              </div>
+              <div className="service-info-row">
+                <span>Readiness</span>
+                <span className="metric-badge amber">Candidate Standby</span>
               </div>
             </div>
             <div className="service-note">
-              {healthData?.services?.stt?.note || 'Awaiting Phase 1 local hardware benchmark.'}
+              {healthData?.services?.stt?.note || 'Speech-to-text candidate engine pending Phase 1 evaluation.'}
             </div>
           </div>
 
           {/* TTS Candidate Card */}
           <div className="service-card" id="card-service-tts">
             <div className="service-card-top">
-              <span className="service-card-title">🔊 Text-to-Speech</span>
-              <span className="service-status-pill standby">
-                {healthData?.services?.tts?.status || 'Candidate Standby'}
+              <span className="service-card-title">🔊 Text-to-Speech (TTS)</span>
+              <span className={`service-status-pill ${healthData?.services?.tts?.status || 'uninitialized'}`}>
+                {healthData?.services?.tts?.status || 'Uninitialized'}
               </span>
             </div>
             <div className="service-info-list">
               <div className="service-info-row">
-                <span>Candidates</span>
+                <span>Evaluated Candidates</span>
                 <strong>Piper / Kokoro</strong>
               </div>
               <div className="service-info-row">
-                <span>Output Mode</span>
+                <span>Delivery Policy</span>
                 <strong>Sentence Chunks + Abort</strong>
+              </div>
+              <div className="service-info-row">
+                <span>Readiness</span>
+                <span className="metric-badge amber">Candidate Standby</span>
               </div>
             </div>
             <div className="service-note">
-              {healthData?.services?.tts?.note || 'Awaiting Phase 1 latency evaluation.'}
+              {healthData?.services?.tts?.note || 'Text-to-speech candidate engine pending Phase 1 evaluation.'}
             </div>
           </div>
         </div>
@@ -224,7 +284,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="app-footer">
-        <p>Ruan AI Foundation — Monorepo Architecture verified. Ready for Phase 1 streaming & voice integration.</p>
+        <p>Ruan AI Foundation — Express API Gateway verified. External AI dependencies are uninitialized awaiting Phase 1 integration.</p>
       </footer>
     </div>
   );

@@ -118,7 +118,7 @@ The following table outlines the **theoretical working budget** for the 6 GB VRA
 | Layer | Technology | Primary Target Version | Configuration / Notes |
 |---|---|---|---|
 | **Language** | JavaScript (ESM) | ES2022+ | `"type": "module"` in all `package.json` files |
-| **Node.js** | Node.js Runtime | v18.x or v20.x LTS | Active LTS recommended |
+| **Node.js** | Node.js Runtime | v20.x or v22.x LTS | Active LTS recommended |
 | **Frontend** | React / Vite | React 18+ / Vite 5+ | Clean Vanilla CSS architecture |
 | **Backend** | Express | Express 4.x / 5.x | Standardized REST, SSE & audio endpoints |
 | **Speech-to-Text** | `faster-whisper` / `whisper.cpp` | Candidate Engines | Evaluated on CPU; benchmarked in Phase 1 |

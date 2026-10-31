@@ -16,7 +16,7 @@ Before developing Ruan AI, ensure your local workstation meets the following req
 * **Audio Devices:** Working microphone (for Push-to-Talk) and speakers/headphones (for audio playback).
 
 ### Software Requirements
-* **Node.js:** v18.18.0+ or v20.x LTS installed. Verify via:
+* **Node.js:** Currently supported Active LTS version (v20.x or v22.x LTS recommended). Verify via:
   ```powershell
   node --version
   npm --version
