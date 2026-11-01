@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../docs/assets/ruan-ai-logo.png" alt="Ruan AI Logo" width="420" />
+</p>
+
 # Ruan AI — Client (`client/`)
 
 This directory houses the frontend multimodal user interface for **Ruan AI**.
@@ -13,6 +17,7 @@ The client is strictly responsible for presentation, user interaction, audio I/O
 * **Audio Playback & Instant Interruption:** Enqueuing and playing synthesized neural voice response chunks. Clicking the Stop button, activating Push-to-Talk, or submitting new input immediately silences playback, flushes the audio queue, and calls `/api/chat/abort`.
 * **Interaction Mode Switching:** Providing a seamless toggle between **Voice Mode** (spoken audio responses + text) and **Text-Only Mode** (silent text streaming).
 * **Decoupled Diagnostics:** Rendering status indicators for LM Studio, STT, and TTS based on `/api/health` without failing if a single dependency is offline.
+* **Google Authentication & User Profile:** Seamless Google Identity Services integration with subtle sign-in trigger, fallback avatar handling, glassmorphic account popover, session restoration via `/api/auth/me`, and zero layout shift.
 * **Conversation Management (Phase 2):** Displaying active and previous conversation sessions retrieved from the backend.
 * **User Confirmation Prompts (Phase 4):** Presenting approval modals and permission prompts when agent tools request permission to perform system or file operations.
 
@@ -59,8 +64,8 @@ client/
 
 ## Current Status
  
-* **Status:** Phase 1 & Phase 1.5 Implemented (`v0.1.0-alpha.3`).
+* **Status:** Phase 1 & Phase 1.5 Implemented (`v0.1.0-alpha.4`).
 * **Active Components:**
   * Public Landing Page (`/`) with cinematic loading screen, sound effects, 3D orb centerpiece, architecture diagrams, and diagnostics modal.
-  * Dedicated Conversation Application (`/app`) with collapsible sidebar, multi-turn chat, safe markdown rendering, syntax-highlighted code blocks with copy, model status pill, and robust `localStorage` persistence.
+  * Dedicated Conversation Application (`/app`) with collapsible sidebar, multi-turn chat, safe markdown rendering, syntax-highlighted code blocks with copy, dynamic model status indicator (configured for Gemma 4 E2B IT QAT), and robust `localStorage` persistence.
 * **Next Milestone:** Basic Voice Assistant integration (Push-to-Talk recording service `useAudioRecorder`, audio playback coordinator `useAudioPlayer`, and mode switching).

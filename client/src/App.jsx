@@ -184,8 +184,6 @@ export default function App() {
             <Navbar 
               onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
               onLaunchApp={() => navigateTo('/app')}
-              backendConnected={healthStatus === 'connected'}
-              latency={latency}
             />
 
             <main id="main-content">

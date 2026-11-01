@@ -232,13 +232,22 @@
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #FFFFFF 0%, var(--accent-cyan) 25%, var(--accent-violet) 70%, #3B0764 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 35% 35%, #1a0f3d 0%, #0d0622 70%, #060212 100%);
+  border: 1px solid rgba(139, 92, 246, 0.45);
   box-shadow: 
-    0 0 50px rgba(139, 92, 246, 0.8),
-    0 0 100px rgba(103, 232, 249, 0.45),
-    inset 0 0 25px rgba(255, 255, 255, 0.6);
+    0 0 50px rgba(139, 92, 246, 0.75),
+    0 0 100px rgba(103, 232, 249, 0.3),
+    inset 0 0 25px rgba(139, 92, 246, 0.4);
   z-index: 5;
   animation: orbFloat 5s ease-in-out infinite alternate;
+}
+
+.hero-core-mark {
+  z-index: 6;
+  filter: drop-shadow(0 0 16px rgba(139, 92, 246, 0.85));
 }
 
 .orb-specular-highlight {

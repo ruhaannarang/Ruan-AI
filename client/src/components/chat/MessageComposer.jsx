@@ -94,7 +94,7 @@ export default function MessageComposer({
         </div>
 
         <div className="composer-footer-info">
-          <span className="info-item font-mono">Ling 3.0 Tiny</span>
+          <span className="info-item font-mono">Gemma 4 E2B IT QAT</span>
           <span className="info-sep">•</span>
           <span className="info-item font-mono">100% Local Execution</span>
           <span className="info-sep">•</span>

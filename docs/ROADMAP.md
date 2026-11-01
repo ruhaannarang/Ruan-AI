@@ -2,8 +2,8 @@
 
 This document outlines the six planned phases for developing **Ruan AI**. Each phase builds incrementally on previous stable milestones.
 
-> **Current Project Status (as of 2026-10-31 — v0.1.0-alpha.3):**
-> **Phase 1 LM Studio & Streaming Integration Complete.** React + Vite frontend, Node.js + Express backend (ES Modules), LM Studio streaming (`POST /api/chat/stream`), reasoning token suppression, generation abort (`POST /api/chat/abort`), and decoupled health checks (`/api/health`) are active and verified with Ling 3.0 Tiny. Phase 1.5 conversation interface is in active implementation.
+> **Current Project Status (as of 2026-11-01 — v0.1.0-alpha.4):**
+> **Phase 1 LM Studio & Streaming Integration Complete.** React + Vite frontend, Node.js + Express backend (ES Modules), LM Studio streaming (`POST /api/chat/stream`), reasoning token suppression, generation abort (`POST /api/chat/abort`), and decoupled health checks (`/api/health`) are active and verified with **Gemma 4 E2B IT QAT** (`gemma-4-e2b-it-qat`). LM Studio must have the matching model loaded and its local API server running on `http://localhost:1234/v1`. Phase 1.5 conversation interface is fully implemented.
 
 ---
 
@@ -60,6 +60,7 @@ Phase 6: Advanced Voice and Autonomous Capabilities
 * [x] Build dedicated desktop-style conversation interface (`/app`) with multi-turn history, welcome screen, and message composer.
 * [x] Implement safe React-based Markdown rendering and syntax-highlighted code blocks with copy buttons.
 * [x] Implement in-memory conversation search, conversation switching, and robust `localStorage` persistence.
+* [x] Implement Google Authentication & User Profile Management (Google Identity Services, server-side ID token verification with `google-auth-library`, persistent SQLite session storage in `ruan_auth.db`, and polished account dropdown).
 * [ ] Build frontend Push-to-Talk recording service (`useAudioRecorder`).
 * [ ] Implement transient STT transcription endpoint (`/api/voice/transcribe`) evaluating `faster-whisper` vs `whisper.cpp`.
 * [ ] Implement streaming sentence-chunked TTS adapter (`ttsService.js`) evaluating `Piper` vs `Kokoro`.

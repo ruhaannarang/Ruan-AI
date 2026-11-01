@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { config } from './config/index.js';
 import healthRoutes from './routes/healthRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -17,8 +19,9 @@ app.use(
   })
 );
 
-// Body parser
+// Body and Cookie parsers
 app.use(express.json());
+app.use(cookieParser());
 
 // Request logging in development
 if (config.nodeEnv === 'development') {
@@ -31,6 +34,7 @@ if (config.nodeEnv === 'development') {
 // Mount core endpoints
 app.use('/api/health', healthRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/auth', authRoutes);
 
 // Fallback 404 handler
 app.use((req, res) => {

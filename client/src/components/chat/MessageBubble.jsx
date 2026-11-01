@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MarkdownRenderer from './MarkdownRenderer';
+import LogoMark from '../LogoMark';
+import { formatModelDisplayName } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import './MessageBubble.css';
 
 /**
@@ -16,6 +19,13 @@ function formatTime(timestamp) {
 export default function MessageBubble({ message }) {
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
+  const { user } = useAuth();
+
+  // Reset image error if user profile picture updates
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.picture]);
 
   const handleCopy = async () => {
     if (!message.content) return;
@@ -37,22 +47,41 @@ export default function MessageBubble({ message }) {
     }
   };
 
+  // Determine fallback initials if user has no avatar picture or image fails to load
+  const userInitial = user?.name?.trim()?.charAt(0)?.toUpperCase()
+    || user?.email?.trim()?.charAt(0)?.toUpperCase()
+    || 'U';
+
+  const hasProfilePicture = isUser && user?.picture && !avatarError;
+
   return (
     <div className={`message-bubble-row ${isUser ? 'user-row' : 'assistant-row'}`}>
-      <div className={`message-avatar ${isUser ? 'user-avatar' : 'assistant-avatar'}`} aria-hidden="true">
+      <div 
+        className={`message-avatar ${isUser ? 'user-avatar' : 'assistant-avatar'} ${hasProfilePicture ? 'has-user-pic' : ''}`} 
+        aria-hidden="true"
+        title={isUser ? (user?.name || 'You') : 'Ruan AI'}
+      >
         {isUser ? (
-          <span className="avatar-letter">U</span>
+          hasProfilePicture ? (
+            <img
+              src={user.picture}
+              alt={user.name || 'User profile'}
+              className="message-user-avatar-img"
+              onError={() => setAvatarError(true)}
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <span className="avatar-letter">{userInitial}</span>
+          )
         ) : (
-          <div className="ruan-avatar-orb">
-            <span className="orb-inner"></span>
-          </div>
+          <LogoMark size={20} />
         )}
       </div>
 
       <div className={`message-container ${isUser ? 'user-container' : 'assistant-container'}`}>
         <div className="message-meta-header">
           <span className="message-author">{isUser ? 'You' : 'Ruan AI'}</span>
-          {!isUser && <span className="model-chip font-mono">Ling 3.0 Tiny</span>}
+          {!isUser && <span className="model-chip font-mono">{formatModelDisplayName(message.model)}</span>}
           <span className="message-timestamp font-mono">{formatTime(message.timestamp)}</span>
         </div>
 

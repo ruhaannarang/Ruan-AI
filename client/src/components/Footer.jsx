@@ -1,5 +1,6 @@
 import React from 'react';
 import { playClickSound } from '../services/sound';
+import RuanBrandLockup from './RuanBrandLockup';
 import './Footer.css';
 
 export default function Footer({ onExploreDocs }) {
@@ -18,16 +19,10 @@ export default function Footer({ onExploreDocs }) {
         {/* Top Col: Brand & Info */}
         <div className="footer-main-grid">
           <div className="footer-brand-col">
-            <div className="footer-logo">
-              <div className="footer-logo-orb" aria-hidden="true"></div>
-              <span className="footer-logo-text">RUAN<span className="accent-ai">AI</span></span>
-            </div>
+            <RuanBrandLockup size="md" showTagline={true} showDivider={true} />
             <p className="footer-bio">
               A personal, local-first AI companion designed to run autonomously on your machine. Combining conversational intelligence, streaming voice, persistent memory, and supervised tool workflows into a sovereign experience.
             </p>
-            <div className="footer-tagline font-mono">
-              YOUR AI. YOUR MACHINE. YOUR RULES.
-            </div>
           </div>
 
           {/* Navigation Column */}

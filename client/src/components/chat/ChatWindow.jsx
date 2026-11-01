@@ -2,6 +2,7 @@ import React from 'react';
 import MessageList from './MessageList';
 import MessageComposer from './MessageComposer';
 import ModelStatus from './ModelStatus';
+import UserMenu from '../auth/UserMenu';
 import './ChatWindow.css';
 
 export default function ChatWindow({
@@ -59,6 +60,9 @@ export default function ChatWindow({
             </svg>
             <span className="btn-label">New</span>
           </button>
+
+          {/* Google Account Profile / Sign-in */}
+          <UserMenu compact={true} />
         </div>
       </header>
 
@@ -67,7 +71,6 @@ export default function ChatWindow({
         <MessageList
           messages={messages}
           isGenerating={isGenerating}
-          onSelectSuggestion={(prompt) => onSendMessage(prompt)}
         />
       </div>
 

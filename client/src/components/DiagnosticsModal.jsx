@@ -119,7 +119,7 @@ export default function DiagnosticsModal({
                   <div>
                     <span>ACTIVE MODEL:</span> 
                     <strong className={healthData?.services?.lmStudio?.modelAvailable ? 'green' : 'amber'}>
-                      {healthData?.services?.lmStudio?.activeModel || 'ling-3.0-tiny'} {healthData?.services?.lmStudio?.modelAvailable ? '✓' : '(UNLOADED)'}
+                      {healthData?.services?.lmStudio?.activeModel || 'gemma-4-e2b-it-qat'} {healthData?.services?.lmStudio?.modelAvailable ? '✓' : '(UNLOADED)'}
                     </strong>
                   </div>
                 </div>

@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import LogoMark from '../LogoMark';
+import UserMenu from '../auth/UserMenu';
 import './Sidebar.css';
 
 /**
@@ -83,11 +85,10 @@ export default function Sidebar({
             title="Return to Ruan AI overview"
             type="button"
           >
-            <div className="brand-logo-mark" aria-hidden="true">
-              <div className="logo-orb" />
-            </div>
+            <LogoMark size={26} />
+            <div className="sidebar-brand-divider" aria-hidden="true" />
             <div className="brand-name-group">
-              <span className="brand-text">RUAN<span className="brand-ai">AI</span></span>
+              <span className="brand-text">Ruan <span className="brand-ai">AI</span></span>
               <span className="sidebar-version-badge font-mono">v0.1.0-alpha.3</span>
             </div>
           </button>
@@ -227,6 +228,11 @@ export default function Sidebar({
 
         {/* Sidebar Footer Controls */}
         <div className="sidebar-footer">
+          {/* User Account Identity & Sign-In */}
+          <div className="sidebar-account-row">
+            <UserMenu compact={false} />
+          </div>
+
           {/* Settings / Diagnostics Entry */}
           <button
             className="sidebar-footer-btn"
@@ -242,7 +248,7 @@ export default function Sidebar({
           {/* Model Status Tag */}
           <div className="sidebar-model-tag">
             <span className="model-status-indicator" />
-            <span className="model-status-name font-mono">Ling 3.0 Tiny</span>
+            <span className="model-status-name font-mono">Gemma 4 E2B IT QAT</span>
           </div>
         </div>
       </aside>

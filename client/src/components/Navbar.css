@@ -147,47 +147,6 @@
   font-weight: 500;
 }
 
-/* Gateway Badge */
-.gateway-badge-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.75rem;
-  background: rgba(17, 21, 34, 0.8);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.gateway-badge-btn:hover {
-  border-color: var(--border-cyan);
-  color: var(--text-primary);
-  box-shadow: 0 0 15px rgba(103, 232, 249, 0.15);
-}
-
-.gateway-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-
-.gateway-dot.connected {
-  background: var(--status-success);
-  box-shadow: 0 0 8px var(--status-success);
-}
-
-.gateway-dot.disconnected {
-  background: var(--status-warning);
-  box-shadow: 0 0 8px var(--status-warning);
-}
-
-.gateway-text {
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-}
 
 /* Primary CTA */
 .btn-primary-cta {

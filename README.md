@@ -1,8 +1,18 @@
-# Ruan AI
+<p align="center">
+  <img src="docs/assets/ruan-ai-logo.png" alt="Ruan AI — Your AI. Your Machine. Your Rules." width="540" />
+</p>
 
-> **A private, locally hosted personal AI operating companion.**
+<p align="center">
+  <strong>Your AI. Your Machine. Your Rules.</strong><br />
+  <em>A private, locally hosted personal AI operating companion.</em>
+</p>
 
-Ruan AI is an intelligent assistant designed to run entirely on local hardware. Beyond serving as a conversational chatbot, Ruan is architected to evolve into an autonomous operating companion capable of voice and text interaction, maintaining persistent memory, executing multi-step tasks, calling local system tools, and assisting with daily computer workflows—without sending private data to cloud AI services.
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Phase%201.5%20Active-8B5CF6?style=flat-square" alt="Status" />
+  <img src="https://img.shields.io/badge/Architecture-Local--First-10B981?style=flat-square" alt="Local First" />
+  <img src="https://img.shields.io/badge/LM%20Studio-Connected-6366F1?style=flat-square" alt="LM Studio" />
+  <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=flat-square" alt="License" />
+</p>
 
 ---
 
@@ -90,6 +100,10 @@ Ruan AI is an intelligent assistant designed to run entirely on local hardware. 
 | `/api/health` | `GET` | Decoupled health check: server status + independent readiness of LM Studio, STT, and TTS |
 | `/api/chat/stream` | `POST` | Primary conversation endpoint; streams response tokens via SSE (and coordinates voice synthesis) |
 | `/api/chat/abort` | `POST` | Immediately aborts active LLM generation and cancels in-flight TTS synthesis |
+| `/api/auth/config` | `GET` | Returns public Google OAuth client configuration (`googleClientId`, `isConfigured`) |
+| `/api/auth/google` | `POST` | Verifies incoming Google ID token with Google, upserts local SQLite user identity, and issues secure HttpOnly session cookie |
+| `/api/auth/me` | `GET` | Returns authenticated profile (`sub`, `name`, `email`, `picture`, `createdAt`) from valid session cookie |
+| `/api/auth/logout` | `POST` | Invalidates session in SQLite database and clears session cookie |
 | `/api/voice/transcribe` | `POST` | STT endpoint: receives audio blob, returns transcribed text string, discards raw audio |
 | `/api/voice/synthesize` | `POST` | TTS endpoint: receives text string, returns synthesized audio buffer |
 
@@ -108,11 +122,12 @@ Ruan AI is an intelligent assistant designed to run entirely on local hardware. 
 
 ## Current Project Status
 
-* **Status:** Phase 1 Foundation & Phase 1.5 Conversation Interface Implemented (`v0.1.0-alpha.3`).
+* **Status:** Phase 1 Foundation & Phase 1.5 Conversation Interface Implemented (`v0.1.0-alpha.4`).
 * **Active Functionality:**
   * **Frontend (`client/`):** React + Vite SPA with zero-framework Vanilla CSS styling, public landing page (`/`), dedicated desktop-style conversation interface (`/app`), explicit route resolution with 404 fallback, multi-turn chat history, safe markdown rendering, syntax-highlighted code blocks with copy buttons, in-memory conversation search, and robust `localStorage` persistence.
   * **Backend (`server/`):** Node.js + Express backend with decoupled `/api/health` diagnostics, LM Studio streaming gateway (`POST /api/chat/stream`), model reasoning token suppression, and generation cancellation (`POST /api/chat/abort`).
-  * **Local AI Runtime:** LM Studio connected via OpenAI-compatible endpoints with locally loaded **Ling 3.0 Tiny** model.
+  * **Authentication & Identity System:** Google Identity Services integration with server-side ID token verification using official `google-auth-library`, persistent SQLite session storage (`ruan_auth.db`), HttpOnly cookies, fallback avatars, and polished account management dropdown without cloud synchronization.
+  * **Local AI Runtime:** LM Studio connected via OpenAI-compatible endpoints with locally loaded **Gemma 4 E2B IT QAT** (`gemma-4-e2b-it-qat`) model. (LM Studio must have the matching model loaded and its local API server running on `http://localhost:1234/v1`).
 * **Next Development Milestone:** Basic Voice Assistant integration (Push-to-Talk audio recording via Web Audio API / `MediaRecorder`, local STT evaluation of `faster-whisper` vs `whisper.cpp`, and local streaming TTS evaluation of `Piper` vs `Kokoro`). SQLite persistence, LangGraph agent workflows, and computer interaction remain scheduled for subsequent phases.
 
 ---

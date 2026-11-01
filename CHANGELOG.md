@@ -21,6 +21,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.1.0-alpha.4] - 2026-11-01
+
+### Added
+* Implemented Google Authentication and User Profile Management using official Google Identity Services (GIS) and backend cryptographic token verification (`google-auth-library`).
+* Created persistent SQLite user identity and session storage in `server/data/ruan_auth.db` using `better-sqlite3` with WAL mode and foreign key constraints.
+* Designed and integrated account identity UI (`UserMenu.jsx` and `UserMenu.css`):
+  * Unauthenticated state: subtle "Sign in with Google" pill with official Google G logo.
+  * Informational modal when `GOOGLE_CLIENT_ID` is unconfigured, guiding developers through Google Cloud setup.
+  * Authenticated state: user avatar image with graceful fallback initials on missing/failed picture load.
+  * Account popover: displays profile picture, full name, email, Google `sub` ID, verification badge, and sign-out button.
+* Created `AuthContext.jsx` and `authApi.js` managing session restoration via `GET /api/auth/me`, Google Identity Services script lifecycle, and zero-layout-shift loading.
+* Implemented secure HttpOnly, SameSite=Lax, Secure session cookie (`ruan_session`) with 7-day expiration and automatic server-side cleanup.
+* Preserved local-first architecture: authentication is completely decoupled from chat persistence (`localStorage`) and local LLM execution.
+
+### Changed
+* Switched the default local LLM runtime from Ling 3.0 Tiny to **Gemma 4 E2B IT QAT** (`gemma-4-e2b-it-qat`) through LM Studio integration.
+* Updated backend configuration (`server/src/config/index.js`, `.env.example`, and `.env`) to set `LM_STUDIO_MODEL=gemma-4-e2b-it-qat` as the default configurable model.
+* Updated the frontend UI (`ModelStatus`, `Sidebar`, `MessageComposer`, `MessageBubble`, and `DiagnosticsModal`) with dynamic model display formatting (`Gemma 4 E2B IT QAT`).
+* Updated `useChat.js` hook to record and persist the model identifier on assistant messages in local storage.
+* Synchronized project version to `0.1.0-alpha.4` across client and server package manifests, backend configuration, and documentation.
+
+### Verified
+* Verified live LM Studio `/v1/models` endpoint detecting `gemma-4-e2b-it-qat` as loaded and active.
+* Verified decoupled `/api/health` diagnostic endpoint reporting LM Studio connected, active model `gemma-4-e2b-it-qat`, and model availability `true`.
+* Verified real-time SSE token streaming via `POST /api/chat/stream` with Gemma 4 E2B IT QAT.
+* Verified reasoning-token suppression: confirmed Gemma 4 `delta.reasoning_content` tokens are filtered into transient `Thinking...` status events and never exposed or persisted in message content.
+* Verified multi-turn conversation context retention across turns.
+* Verified client and server abort mechanics (`POST /api/chat/abort` and `res.on('close')`) with Gemma 4 generation.
+* Verified decoupled health reporting when LM Studio is disconnected or when an unconfigured model is requested.
+
+---
+
 ## [0.1.0-alpha.3] - 2026-10-31
 
 ### Added

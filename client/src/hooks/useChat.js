@@ -74,6 +74,7 @@ export function validateAndSanitizeConversations(raw) {
           timestamp: typeof msg.timestamp === 'number' && !isNaN(msg.timestamp) ? msg.timestamp : Date.now(),
           isStreaming: false,
           isThinking: false,
+          model: msg.model || (msg.role === 'assistant' ? 'gemma-4-e2b-it-qat' : undefined),
           error: msg.error || null
         });
       }
@@ -113,6 +114,7 @@ function persistConversationsToStorage(conversations) {
         timestamp: m.timestamp,
         isStreaming: false,
         isThinking: false,
+        model: m.model || (m.role === 'assistant' ? 'gemma-4-e2b-it-qat' : undefined),
         error: m.error || null
       }))
     }));
@@ -353,6 +355,7 @@ export function useChat() {
       timestamp: now + 1,
       isStreaming: true,
       isThinking: true,
+      model: 'gemma-4-e2b-it-qat',
       error: null
     };
 
@@ -450,7 +453,7 @@ export function useChat() {
         },
 
         // Generation successfully finished
-        onDone: () => {
+        onDone: (data) => {
           // Reject stale or aborted events
           if (controller.signal.aborted || activeRequestIdRef.current !== currentRequestId) {
             return;
@@ -464,7 +467,12 @@ export function useChat() {
                 updatedAt: Date.now(),
                 messages: c.messages.map(m =>
                   m.id === assistantMessageId
-                    ? { ...m, isStreaming: false, isThinking: false }
+                    ? {
+                        ...m,
+                        isStreaming: false,
+                        isThinking: false,
+                        model: data?.model || m.model || 'gemma-4-e2b-it-qat'
+                      }
                     : m
                 )
               };

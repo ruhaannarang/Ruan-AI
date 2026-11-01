@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { playOrbInitSound, playStartupSound } from '../services/sound';
+import LogoMark from './LogoMark';
 import './LoadingScreen.css';
 
 export default function LoadingScreen({ onComplete }) {
@@ -83,10 +84,10 @@ export default function LoadingScreen({ onComplete }) {
           <div className="ring ring-middle"></div>
           <div className="ring ring-inner"></div>
           
-          {/* Shimmering Core */}
+          {/* Shimmering Core with Official Logo Mark */}
           <div className="core-orb">
             <div className="core-glow"></div>
-            <div className="core-center"></div>
+            <LogoMark size={52} glow={true} className="loading-logo-mark" />
           </div>
 
           {/* Floating Ambient Sparkles */}

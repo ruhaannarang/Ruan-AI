@@ -61,7 +61,7 @@ export default function ModelStatus({ onOpenDiagnostics }) {
 
   const lmConnected = healthData?.services?.lmStudio?.status === 'connected';
   const modelAvailable = healthData?.services?.lmStudio?.modelAvailable;
-  const activeModel = healthData?.services?.lmStudio?.activeModel || 'ling-3.0-tiny';
+  const activeModel = healthData?.services?.lmStudio?.activeModel || 'gemma-4-e2b-it-qat';
 
   return (
     <div className="model-status-wrapper" ref={popoverRef}>

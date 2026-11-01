@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../docs/assets/ruan-ai-logo.png" alt="Ruan AI Logo" width="420" />
+</p>
+
 # Ruan AI — Server (`server/`)
 
 This directory houses the backend service, API layer, AI runtime gateway, voice processing subsystem, memory system, and agent execution engine for **Ruan AI**.
@@ -13,6 +17,11 @@ The server is the core operational brain of Ruan AI:
   * `POST /api/chat/abort` — Cancels in-flight LLM generation and aborts active TTS synthesis.
   * `POST /api/voice/transcribe` — Dispatches audio blob to local STT candidate; returns transcribed text and immediately frees raw audio from memory.
   * `POST /api/voice/synthesize` — Dispatches text string to local TTS candidate; returns synthesized audio buffer.
+  * `GET /api/auth/config` — Returns public Google Identity Services configuration (`googleClientId`, `isConfigured`).
+  * `POST /api/auth/google` — Verifies incoming Google ID token with Google, upserts local SQLite user identity, and issues secure HttpOnly session cookie.
+  * `GET /api/auth/me` — Returns authenticated profile (`sub`, `name`, `email`, `picture`, `createdAt`) from valid session cookie.
+  * `POST /api/auth/logout` — Invalidates session in SQLite database and clears session cookie.
+* **Google Authentication & Identity Subsystem:** Independent server-side cryptographic token verification using official `google-auth-library` and persistent session management via SQLite (`ruan_auth.db`).
 * **Unified Conversation Orchestrator:** Manages the canonical conversation state. Spoken and typed interactions share the exact same context window and conversation history.
 * **LM Studio Client:** Manages communication with the locally running LM Studio inference server (`http://localhost:1234/v1`) using configurable context windows and model parameters.
 * **Voice Processing Subsystem (Phase 1):**
@@ -67,11 +76,11 @@ server/
 
 ## Current Status
 
-* **Status:** Phase 1 & Phase 1.5 Implemented (`v0.1.0-alpha.3`).
+* **Status:** Phase 1 & Phase 1.5 Implemented (`v0.1.0-alpha.4`).
 * **Active Components:**
   * Express.js HTTP/SSE server running on `http://127.0.0.1:5000` with CORS, error-handling middleware, and structured logging.
-  * Decoupled health reporting (`GET /api/health`) dynamically detecting LM Studio readiness and loaded models.
+  * Decoupled health reporting (`GET /api/health`) dynamically detecting LM Studio readiness and loaded models (default model: `gemma-4-e2b-it-qat`).
   * Real-time streaming gateway (`POST /api/chat/stream`) with Server-Sent Events, token buffering, and model reasoning suppression.
   * In-flight generation cancellation registry (`POST /api/chat/abort`) with AbortController lifecycle management.
-  * Native fetch connector (`lmStudioService.js`) targeting local LM Studio on port 1234.
+  * Native fetch connector (`lmStudioService.js`) targeting local LM Studio on port 1234 (configured for Gemma 4 E2B IT QAT).
 * **Next Milestone:** Basic Voice Assistant integration (transient STT endpoint `/api/voice/transcribe` evaluating `faster-whisper` vs `whisper.cpp`, and streaming sentence-chunked TTS adapter `/api/voice/synthesize` evaluating `Piper` vs `Kokoro`).

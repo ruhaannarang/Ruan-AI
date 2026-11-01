@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { playClickSound } from '../services/sound';
+import LogoMark from './LogoMark';
 import './Hero.css';
 
 export default function Hero({ onExploreDocs, onExploreCapabilities, onLaunchApp }) {
@@ -120,10 +121,11 @@ export default function Hero({ onExploreDocs, onExploreCapabilities, onLaunchApp
             <div className="orb-ring ring-2"></div>
             <div className="orb-ring ring-3"></div>
 
-            {/* AI Core Orb */}
+            {/* AI Core Orb with Official Logo Mark */}
             <div className="hero-orb-core">
               <div className="orb-specular-highlight"></div>
               <div className="orb-inner-wave"></div>
+              <LogoMark size={70} glow={true} className="hero-core-mark" />
             </div>
 
             {/* Ambient Orbiting Micro-Nodes */}

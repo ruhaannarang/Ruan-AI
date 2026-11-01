@@ -335,3 +335,16 @@ export async function abortChat(requestId) {
     };
   }
 }
+
+/**
+ * Formats a raw model identifier (e.g. 'gemma-4-e2b-it-qat') into a readable display title.
+ * @param {string} [modelId]
+ * @returns {string}
+ */
+export function formatModelDisplayName(modelId) {
+  if (!modelId || typeof modelId !== 'string') return 'Gemma 4 E2B IT QAT';
+  if (modelId === 'gemma-4-e2b-it-qat') return 'Gemma 4 E2B IT QAT';
+  if (modelId === 'ling-3.0-tiny') return 'Ling 3.0 Tiny';
+  if (modelId.includes('qwen2.5-vl-7b')) return 'Qwen 2.5 VL 7B';
+  return modelId.split(/[-_]/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getSoundStatus, toggleSound, playClickSound } from '../services/sound';
+import RuanBrandLockup from './RuanBrandLockup';
+import UserMenu from './auth/UserMenu';
 import './Navbar.css';
 
-export default function Navbar({ onOpenDiagnostics, onLaunchApp, backendConnected, latency }) {
+export default function Navbar({ onOpenDiagnostics, onLaunchApp }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(getSoundStatus());
@@ -39,17 +41,14 @@ export default function Navbar({ onOpenDiagnostics, onLaunchApp, backendConnecte
   return (
     <header className={`navbar-wrapper ${isScrolled ? 'scrolled' : ''}`} id="main-navigation">
       <div className="navbar-container">
-        {/* Brand Wordmark */}
+        {/* Brand Wordmark & Logo */}
         <a 
           href="#hero" 
           className="brand-link" 
           onClick={(e) => handleNavClick(e, 'hero')}
           aria-label="Ruan AI Home"
         >
-          <div className="brand-logo-mark" aria-hidden="true">
-            <div className="logo-orb"></div>
-          </div>
-          <span className="brand-text">RUAN<span className="brand-ai">AI</span></span>
+          <RuanBrandLockup size="sm" showDivider={true} />
         </a>
 
         {/* Desktop Navigation Links */}
@@ -78,21 +77,9 @@ export default function Navbar({ onOpenDiagnostics, onLaunchApp, backendConnecte
             </span>
           </button>
 
-          {/* Backend Gateway Live Indicator */}
-          <button 
-            className="gateway-badge-btn" 
-            onClick={() => {
-              playClickSound();
-              onOpenDiagnostics();
-            }}
-            title="Inspect Express Gateway & AI subsystem health"
-            aria-label="View system status and diagnostics"
-          >
-            <span className={`gateway-dot ${backendConnected ? 'connected' : 'disconnected'}`}></span>
-            <span className="gateway-text font-mono">
-              {backendConnected ? `NODE 5000 (${latency || '—'}ms)` : 'GATEWAY STANDBY'}
-            </span>
-          </button>
+
+          {/* Google Account Profile / Sign-in */}
+          <UserMenu compact={true} />
 
           {/* Primary CTA - Launch Ruan App */}
           <button 
