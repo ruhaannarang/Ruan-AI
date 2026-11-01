@@ -42,6 +42,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   * `MessageComposer` with auto-expanding textarea, Enter to send, Shift+Enter for newline, generation stop button with red pulse, and keyboard shortcuts.
   * `ModelStatus` compact pill and popover displaying real-time Express backend and LM Studio connection status with automatic 20-second polling.
   * `useChat` hook managing multi-turn conversation state, system instruction enforcement, stream isolation between chats, and generation abort cleanup.
+* Hardened conversation lifecycle in `useChat.js`: enforced single-active-generation policy, guarded callbacks against stale or late SSE events, safely cleaned up `AbortController` instances, and gated `localStorage` writes to prevent main thread stutters.
+* Hardened `localStorage` persistence: added schema validation for restored conversations, stripped transient streaming states, guarded against corrupted JSON, and added fallback handling for quota/storage restrictions.
+* Secured Markdown link rendering in `MarkdownRenderer.jsx`: strictly validated link protocols to allow only HTTP, HTTPS, and mailto; rejected unsafe protocols (including `javascript:`) by rendering safe plain text.
+* Enhanced SSE parser reliability in `api.js`: normalized CRLF/LF newlines, supported multi-line `data:` frames, handled chunk-split event boundaries, added EOF buffer flush, guaranteed single-fire completion callbacks, and ensured reader locks are released in `try...finally`.
+* Refactored client routing in `App.jsx` from broad prefix matching to explicit canonical route resolution (`/` and `/app`), adding a styled 404 fallback screen for unrecognized paths while preserving browser navigation.
 * Updated live diagnostics modal to reflect verified online status and model readiness.
 
 ---

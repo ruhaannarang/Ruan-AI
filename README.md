@@ -108,9 +108,12 @@ Ruan AI is an intelligent assistant designed to run entirely on local hardware. 
 
 ## Current Project Status
 
-* **Status:** Phase 1 Foundation Implemented
-* **Active Codebase:** React + Vite client, Express backend with decoupled health check (`/api/health`), and modular project structure active.
-* **Next Step:** Local LM Studio client service and voice candidate integration.
+* **Status:** Phase 1 Foundation & Phase 1.5 Conversation Interface Implemented (`v0.1.0-alpha.3`).
+* **Active Functionality:**
+  * **Frontend (`client/`):** React + Vite SPA with zero-framework Vanilla CSS styling, public landing page (`/`), dedicated desktop-style conversation interface (`/app`), explicit route resolution with 404 fallback, multi-turn chat history, safe markdown rendering, syntax-highlighted code blocks with copy buttons, in-memory conversation search, and robust `localStorage` persistence.
+  * **Backend (`server/`):** Node.js + Express backend with decoupled `/api/health` diagnostics, LM Studio streaming gateway (`POST /api/chat/stream`), model reasoning token suppression, and generation cancellation (`POST /api/chat/abort`).
+  * **Local AI Runtime:** LM Studio connected via OpenAI-compatible endpoints with locally loaded **Ling 3.0 Tiny** model.
+* **Next Development Milestone:** Basic Voice Assistant integration (Push-to-Talk audio recording via Web Audio API / `MediaRecorder`, local STT evaluation of `faster-whisper` vs `whisper.cpp`, and local streaming TTS evaluation of `Piper` vs `Kokoro`). SQLite persistence, LangGraph agent workflows, and computer interaction remain scheduled for subsequent phases.
 
 ---
 

@@ -67,6 +67,11 @@ server/
 
 ## Current Status
 
-* **Status:** Initial Planning / Uninitialized.
-* No dependencies installed or Express code written yet.
-* Implementation begins in **Phase 1: Core Foundation + Basic Voice Assistant**.
+* **Status:** Phase 1 & Phase 1.5 Implemented (`v0.1.0-alpha.3`).
+* **Active Components:**
+  * Express.js HTTP/SSE server running on `http://127.0.0.1:5000` with CORS, error-handling middleware, and structured logging.
+  * Decoupled health reporting (`GET /api/health`) dynamically detecting LM Studio readiness and loaded models.
+  * Real-time streaming gateway (`POST /api/chat/stream`) with Server-Sent Events, token buffering, and model reasoning suppression.
+  * In-flight generation cancellation registry (`POST /api/chat/abort`) with AbortController lifecycle management.
+  * Native fetch connector (`lmStudioService.js`) targeting local LM Studio on port 1234.
+* **Next Milestone:** Basic Voice Assistant integration (transient STT endpoint `/api/voice/transcribe` evaluating `faster-whisper` vs `whisper.cpp`, and streaming sentence-chunked TTS adapter `/api/voice/synthesize` evaluating `Piper` vs `Kokoro`).

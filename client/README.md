@@ -58,7 +58,9 @@ client/
 ---
 
 ## Current Status
-
-* **Status:** Initial Planning / Uninitialized.
-* No dependencies installed or Vite templates initialized yet.
-* Implementation begins in **Phase 1: Core Foundation + Basic Voice Assistant**.
+ 
+* **Status:** Phase 1 & Phase 1.5 Implemented (`v0.1.0-alpha.3`).
+* **Active Components:**
+  * Public Landing Page (`/`) with cinematic loading screen, sound effects, 3D orb centerpiece, architecture diagrams, and diagnostics modal.
+  * Dedicated Conversation Application (`/app`) with collapsible sidebar, multi-turn chat, safe markdown rendering, syntax-highlighted code blocks with copy, model status pill, and robust `localStorage` persistence.
+* **Next Milestone:** Basic Voice Assistant integration (Push-to-Talk recording service `useAudioRecorder`, audio playback coordinator `useAudioPlayer`, and mode switching).

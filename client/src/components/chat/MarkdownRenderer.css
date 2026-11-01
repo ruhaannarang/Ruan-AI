@@ -77,6 +77,14 @@
   color: #A5F3FC;
 }
 
+.md-unsafe-link {
+  color: #F87171;
+  text-decoration: line-through;
+  opacity: 0.85;
+  cursor: not-allowed;
+  padding: 0 2px;
+}
+
 .md-blockquote {
   margin: 12px 0;
   padding: 6px 16px;

@@ -67,7 +67,8 @@ export async function checkHealth(signal) {
 
 /**
  * Initiates a streaming chat completion through the Express backend (POST /api/chat/stream).
- * Reads tokens incrementally using ReadableStream without buffering the full response.
+ * Robust, zero-dependency W3C-compliant SSE streaming parser handling CRLF, multiple data lines,
+ * cross-chunk event boundaries, safe completion lifecycle, and resource release.
  * 
  * @param {Object} options
  * @param {Array<{role: 'system'|'user'|'assistant', content: string}>} options.messages - Message history
@@ -75,7 +76,7 @@ export async function checkHealth(signal) {
  * @param {number} [options.maxTokens] - Optional maximum tokens limit
  * @param {string} [options.requestId] - Optional request ID tracking
  * @param {AbortSignal} [options.signal] - Optional AbortSignal to cancel from client
- * @param {(status: 'thinking'|'generating', message: string, data: Object) => void} [options.onStatus] - Callback for status updates (e.g., 'Thinking...')
+ * @param {(status: 'thinking'|'generating', message: string, data: Object) => void} [options.onStatus] - Callback for status updates
  * @param {(token: string, data: Object) => void} [options.onToken] - Callback for each streamed user-facing content token
  * @param {(data: { requestId: string, model: string, finish_reason: string, totalTokens: number }) => void} [options.onDone] - Callback when generation is complete
  * @param {(error: { message: string, code: string, details?: any }) => void} [options.onError] - Callback on structured error
@@ -93,6 +94,31 @@ export async function streamChat({
   onError
 }) {
   const genRequestId = requestId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `req_${Date.now()}`);
+
+  // Guaranteed single-invocation lifecycle guards
+  let hasTerminated = false;
+
+  const safeOnToken = (token, data) => {
+    if (hasTerminated || signal?.aborted) return;
+    if (onToken) onToken(token, data);
+  };
+
+  const safeOnStatus = (status, msg, data) => {
+    if (hasTerminated || signal?.aborted) return;
+    if (onStatus) onStatus(status, msg, data);
+  };
+
+  const safeOnDone = (data) => {
+    if (hasTerminated || signal?.aborted) return;
+    hasTerminated = true;
+    if (onDone) onDone(data);
+  };
+
+  const safeOnError = (err) => {
+    if (hasTerminated || signal?.aborted) return;
+    hasTerminated = true;
+    if (onError) onError(err);
+  };
 
   try {
     const response = await fetch(`${BASE_URL}/chat/stream`, {
@@ -117,7 +143,7 @@ export async function streamChat({
         code: errorJson?.error?.code || 'STREAM_INIT_FAILED',
         details: errorJson?.error?.details || null
       };
-      if (onError) onError(err);
+      safeOnError(err);
       return { requestId: genRequestId, aborted: false, error: err };
     }
 
@@ -127,52 +153,141 @@ export async function streamChat({
         code: 'STREAM_UNSUPPORTED',
         details: null
       };
-      if (onError) onError(err);
+      safeOnError(err);
       return { requestId: genRequestId, aborted: false, error: err };
     }
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
+
     let buffer = '';
     let currentEvent = 'message';
+    let dataLines = [];
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    // Helper to dispatch an assembled SSE message
+    const dispatchMessage = (event, rawData) => {
+      if (hasTerminated || signal?.aborted) return;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+      if (event === 'error') {
+        let errData;
+        try {
+          errData = JSON.parse(rawData);
+        } catch {
+          errData = { message: rawData || 'Upstream stream error', code: 'STREAM_ERROR' };
+        }
+        safeOnError({
+          message: errData.message || 'Stream error occurred',
+          code: errData.code || 'STREAM_ERROR',
+          details: errData.details || null
+        });
+        return;
+      }
 
-      for (const rawLine of lines) {
-        const line = rawLine.trim();
-        if (!line) {
-          currentEvent = 'message';
-          continue;
+      if (rawData === '[DONE]') {
+        safeOnDone({
+          requestId: genRequestId,
+          finish_reason: 'stop'
+        });
+        return;
+      }
+
+      try {
+        const json = JSON.parse(rawData);
+
+        if (event === 'status' || json.status !== undefined) {
+          safeOnStatus(json.status, json.message || 'Thinking...', json);
+        } else if (event === 'token' || json.token !== undefined) {
+          safeOnToken(json.token, json);
+        } else if (event === 'done' || json.finish_reason !== undefined) {
+          safeOnDone(json);
+        } else if (event === 'error' || json.error) {
+          safeOnError({
+            message: json.error?.message || json.message || 'Error received from backend stream',
+            code: json.error?.code || json.code || 'STREAM_ERROR',
+            details: json.error?.details || null
+          });
+        }
+      } catch {
+        // Non-JSON SSE data payload; handle gracefully based on event type
+        if (event === 'token') {
+          safeOnToken(rawData, { token: rawData });
+        } else if (event === 'status') {
+          safeOnStatus('status', rawData, { message: rawData });
+        }
+      }
+    };
+
+    // Parser loop handling chunk splits, CRLF and LF, and reader lock release
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+        if (signal?.aborted) {
+          return { requestId: genRequestId, aborted: true };
         }
 
-        if (line.startsWith('event: ')) {
-          currentEvent = line.slice(7).trim();
-          continue;
-        }
+        // Decode value and normalize CRLF (\r\n) or lone \r to standard \n
+        const chunkText = decoder.decode(value, { stream: true });
+        buffer += chunkText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-        if (line.startsWith('data: ')) {
-          const dataStr = line.slice(6).trim();
-          try {
-            const data = JSON.parse(dataStr);
-            if (currentEvent === 'status' || data.status !== undefined) {
-              if (onStatus) onStatus(data.status, data.message || 'Thinking...', data);
-            } else if (currentEvent === 'token' || data.token !== undefined) {
-              if (onToken) onToken(data.token, data);
-            } else if (currentEvent === 'done' || data.finish_reason !== undefined) {
-              if (onDone) onDone(data);
-            } else if (currentEvent === 'error') {
-              if (onError) onError(data);
+        const lines = buffer.split('\n');
+        // Retain the trailing incomplete segment in buffer
+        buffer = lines.pop() || '';
+
+        for (const rawLine of lines) {
+          const line = rawLine;
+
+          // Empty line indicates event boundary in SSE protocol
+          if (line === '') {
+            if (dataLines.length > 0) {
+              const fullData = dataLines.join('\n');
+              dispatchMessage(currentEvent, fullData);
+              dataLines = [];
             }
-          } catch {
-            // Ignore unparseable data chunk
+            currentEvent = 'message';
+            continue;
+          }
+
+          // Ignore comments (lines starting with ':')
+          if (line.startsWith(':')) {
+            continue;
+          }
+
+          if (line.startsWith('event:')) {
+            currentEvent = line.slice(6).trim();
+            continue;
+          }
+
+          if (line.startsWith('data:')) {
+            // Strip leading space after colon if present
+            const val = line.slice(5).replace(/^\s/, '');
+            dataLines.push(val);
+            continue;
           }
         }
+      }
+
+      // Flush remaining data in buffer after stream reaches EOF
+      if (buffer.trim()) {
+        const remainingLines = buffer.split('\n');
+        for (const rawLine of remainingLines) {
+          if (rawLine.startsWith('event:')) {
+            currentEvent = rawLine.slice(6).trim();
+          } else if (rawLine.startsWith('data:')) {
+            dataLines.push(rawLine.slice(5).replace(/^\s/, ''));
+          }
+        }
+      }
+
+      if (dataLines.length > 0) {
+        dispatchMessage(currentEvent, dataLines.join('\n'));
+      }
+    } finally {
+      try {
+        reader.releaseLock();
+      } catch {
+        // Reader already closed or released
       }
     }
 
@@ -185,7 +300,7 @@ export async function streamChat({
       message: err.message || 'An unexpected error occurred during streaming',
       code: 'NETWORK_STREAM_ERROR'
     };
-    if (onError) onError(errorObj);
+    safeOnError(errorObj);
     return { requestId: genRequestId, aborted: false, error: errorObj };
   }
 }
@@ -197,6 +312,10 @@ export async function streamChat({
  * @returns {Promise<{ success: boolean, message: string, aborted: boolean }>}
  */
 export async function abortChat(requestId) {
+  if (!requestId || typeof requestId !== 'string') {
+    return { success: false, message: 'Invalid requestId', aborted: false };
+  }
+
   try {
     const response = await fetch(`${BASE_URL}/chat/abort`, {
       method: 'POST',

@@ -5,6 +5,8 @@ const SYSTEM_INSTRUCTION = 'You are Ruan AI, a helpful personal AI assistant. Be
 const STORAGE_KEY = 'ruan_ai_conversations_v1';
 const ACTIVE_CONV_KEY = 'ruan_ai_active_conv_id';
 
+const VALID_ROLES = new Set(['system', 'user', 'assistant']);
+
 /**
  * Generates a clean preview title from the first message content.
  * @param {string} text
@@ -17,7 +19,7 @@ function generateTitle(text) {
 }
 
 /**
- * Creates an empty conversation object.
+ * Creates a fresh, empty conversation object.
  * @returns {Object}
  */
 function createNewConversationObject() {
@@ -33,8 +35,103 @@ function createNewConversationObject() {
 }
 
 /**
+ * Validates, filters, and sanitizes restored conversation data from localStorage.
+ * Defends against corrupted data, invalid roles, and ensures transient streaming states are stripped.
+ * 
+ * @param {any} raw
+ * @returns {Array<Object>}
+ */
+export function validateAndSanitizeConversations(raw) {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return [createNewConversationObject()];
+  }
+
+  const sanitized = [];
+
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue;
+
+    const id = typeof item.id === 'string' && item.id.trim() ? item.id.trim() : null;
+    if (!id) continue;
+
+    const title = typeof item.title === 'string' && item.title.trim() ? item.title.trim() : 'New Chat';
+    const createdAt = typeof item.createdAt === 'number' && !isNaN(item.createdAt) ? item.createdAt : Date.now();
+    const updatedAt = typeof item.updatedAt === 'number' && !isNaN(item.updatedAt) ? item.updatedAt : createdAt;
+
+    const messages = [];
+    if (Array.isArray(item.messages)) {
+      for (const msg of item.messages) {
+        if (!msg || typeof msg !== 'object') continue;
+        if (!msg.id || typeof msg.id !== 'string') continue;
+        if (!VALID_ROLES.has(msg.role)) continue;
+        if (typeof msg.content !== 'string') continue;
+
+        // Strip transient streaming flags before persisting/restoring
+        messages.push({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: typeof msg.timestamp === 'number' && !isNaN(msg.timestamp) ? msg.timestamp : Date.now(),
+          isStreaming: false,
+          isThinking: false,
+          error: msg.error || null
+        });
+      }
+    }
+
+    sanitized.push({
+      id,
+      title,
+      createdAt,
+      updatedAt,
+      messages
+    });
+  }
+
+  return sanitized.length > 0 ? sanitized : [createNewConversationObject()];
+}
+
+/**
+ * Safely writes conversations to localStorage with quota and security checks.
+ * Strips transient streaming flags and internal reasoning before writing.
+ * 
+ * @param {Array<Object>} conversations
+ */
+function persistConversationsToStorage(conversations) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const sanitized = conversations.map(c => ({
+      id: c.id,
+      title: c.title,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+      messages: c.messages.map(m => ({
+        id: m.id,
+        role: m.role,
+        content: m.content || '',
+        timestamp: m.timestamp,
+        isStreaming: false,
+        isThinking: false,
+        error: m.error || null
+      }))
+    }));
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+  } catch (err) {
+    // Gracefully handle QuotaExceededError or security restrictions (incognito mode)
+    console.warn('[useChat] Failed to save conversations to localStorage (quota or security restriction):', err.message);
+  }
+}
+
+/**
  * Custom hook managing Ruan AI conversations, multi-turn history,
  * real-time SSE token streaming, and generation cancellation lifecycle.
+ * 
+ * Architecture Choice: Single-active-generation policy.
+ * Only one in-flight LLM generation runs across the client at any given time.
+ * If the user initiates a new chat or deletes a generating conversation, any active
+ * generation is cleanly aborted upstream and locally to safeguard consumer GPU VRAM.
  */
 export function useChat() {
   // Load persisted conversations or initialize with a clean one
@@ -44,13 +141,11 @@ export function useChat() {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
-          }
+          return validateAndSanitizeConversations(parsed);
         }
       }
     } catch (e) {
-      console.warn('[useChat] Failed to restore conversations from storage:', e);
+      console.warn('[useChat] Failed to restore conversations from storage:', e.message);
     }
     return [createNewConversationObject()];
   });
@@ -60,7 +155,9 @@ export function useChat() {
     try {
       if (typeof window !== 'undefined') {
         const savedId = localStorage.getItem(ACTIVE_CONV_KEY);
-        if (savedId) return savedId;
+        if (savedId && conversations.some(c => c.id === savedId)) {
+          return savedId;
+        }
       }
     } catch {}
     return conversations[0]?.id || '';
@@ -75,25 +172,28 @@ export function useChat() {
   const generatingConvIdRef = useRef(null);
   const conversationsRef = useRef(conversations);
 
-  // Keep ref synchronized with state
+  // Keep conversationsRef synchronized with state
   useEffect(() => {
     conversationsRef.current = conversations;
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
-      }
-    } catch (e) {
-      console.warn('[useChat] Failed to persist conversations:', e);
-    }
   }, [conversations]);
 
-  // Persist active ID
+  // Persist conversations to storage ONLY when generation is NOT in progress.
+  // This avoids writing to localStorage on every single incoming token (preventing main thread stalls).
+  useEffect(() => {
+    if (!isGenerating) {
+      persistConversationsToStorage(conversations);
+    }
+  }, [conversations, isGenerating]);
+
+  // Persist active ID safely
   useEffect(() => {
     try {
       if (typeof window !== 'undefined' && activeId) {
         localStorage.setItem(ACTIVE_CONV_KEY, activeId);
       }
-    } catch {}
+    } catch (err) {
+      console.warn('[useChat] Failed to persist active conversation ID:', err.message);
+    }
   }, [activeId]);
 
   // Ensure activeId always points to a valid conversation
@@ -116,30 +216,87 @@ export function useChat() {
   }, []);
 
   /**
+   * Stops an active generation cleanly.
+   * Cancels in-flight controller, dispatches backend abort, and marks placeholder as stopped.
+   */
+  const stopGeneration = useCallback(() => {
+    const reqId = activeRequestIdRef.current;
+    const targetConvId = generatingConvIdRef.current;
+
+    // Immediately cancel client controller
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort('USER_STOPPED');
+      abortControllerRef.current = null;
+    }
+
+    // Immediately clear active request ID so any trailing SSE events are dropped
+    activeRequestIdRef.current = null;
+    generatingConvIdRef.current = null;
+
+    if (reqId) {
+      abortChat(reqId).catch(() => {});
+    }
+
+    if (targetConvId) {
+      setConversations(prev =>
+        prev.map(c => {
+          if (c.id !== targetConvId) return c;
+          return {
+            ...c,
+            updatedAt: Date.now(),
+            messages: c.messages.map(m => {
+              if (m.isStreaming) {
+                return {
+                  ...m,
+                  isStreaming: false,
+                  isThinking: false,
+                  content: m.content ? m.content : '(Generation stopped.)'
+                };
+              }
+              return m;
+            })
+          };
+        })
+      );
+    }
+
+    setIsGenerating(false);
+    setGeneratingConvId(null);
+  }, []);
+
+  /**
    * Creates a new conversation and switches to it.
+   * If a generation is currently active, it is stopped first to respect single-active-generation policy.
    */
   const createNewChat = useCallback(() => {
+    if (isGenerating) {
+      stopGeneration();
+    }
+
     const newConv = createNewConversationObject();
     setConversations(prev => [newConv, ...prev]);
     setActiveId(newConv.id);
     return newConv.id;
-  }, []);
+  }, [isGenerating, stopGeneration]);
 
   /**
    * Deletes a conversation by ID.
+   * If the deleted conversation is currently generating, aborts it immediately.
    */
   const deleteConversation = useCallback((convId) => {
-    // If the conversation being deleted is currently generating, cancel it
+    // If the conversation being deleted is currently generating, cancel it cleanly
     if (generatingConvIdRef.current === convId) {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort('CONVERSATION_DELETED');
+        abortControllerRef.current = null;
       }
       if (activeRequestIdRef.current) {
         abortChat(activeRequestIdRef.current).catch(() => {});
+        activeRequestIdRef.current = null;
       }
+      generatingConvIdRef.current = null;
       setIsGenerating(false);
       setGeneratingConvId(null);
-      generatingConvIdRef.current = null;
     }
 
     setConversations(prev => {
@@ -160,59 +317,15 @@ export function useChat() {
    * Renames a conversation.
    */
   const renameConversation = useCallback((convId, newTitle) => {
-    if (!newTitle.trim()) return;
+    if (!newTitle || !newTitle.trim()) return;
     setConversations(prev =>
       prev.map(c => (c.id === convId ? { ...c, title: newTitle.trim(), updatedAt: Date.now() } : c))
     );
   }, []);
 
   /**
-   * Stops an active generation.
-   */
-  const stopGeneration = useCallback(() => {
-    const reqId = activeRequestIdRef.current;
-    const targetConvId = generatingConvIdRef.current;
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort('USER_STOPPED');
-      abortControllerRef.current = null;
-    }
-
-    if (reqId) {
-      abortChat(reqId).catch(() => {});
-      activeRequestIdRef.current = null;
-    }
-
-    if (targetConvId) {
-      setConversations(prev =>
-        prev.map(c => {
-          if (c.id !== targetConvId) return c;
-          return {
-            ...c,
-            updatedAt: Date.now(),
-            messages: c.messages.map(m => {
-              if (m.isStreaming) {
-                return {
-                  ...m,
-                  isStreaming: false,
-                  isThinking: false,
-                  content: m.content || '(Generation stopped.)'
-                };
-              }
-              return m;
-            })
-          };
-        })
-      );
-    }
-
-    setIsGenerating(false);
-    setGeneratingConvId(null);
-    generatingConvIdRef.current = null;
-  }, []);
-
-  /**
    * Sends a user message and streams assistant response from LM Studio.
+   * Strictly isolates updates to targetConvId and ignores late callbacks if aborted.
    */
   const sendMessage = useCallback(async (content, specificConvId = null) => {
     const text = content?.trim();
@@ -269,12 +382,12 @@ export function useChat() {
       { role: 'user', content: text }
     ];
 
-    const requestId = typeof crypto !== 'undefined' && crypto.randomUUID
+    const currentRequestId = typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
       : `req_${Date.now()}`;
 
     const controller = new AbortController();
-    activeRequestIdRef.current = requestId;
+    activeRequestIdRef.current = currentRequestId;
     abortControllerRef.current = controller;
     generatingConvIdRef.current = targetConvId;
 
@@ -284,11 +397,16 @@ export function useChat() {
     try {
       await streamChat({
         messages: messagesPayload,
-        requestId,
+        requestId: currentRequestId,
         signal: controller.signal,
 
         // Status event from backend (e.g. 'Thinking...')
         onStatus: (status) => {
+          // Reject stale or aborted events
+          if (controller.signal.aborted || activeRequestIdRef.current !== currentRequestId) {
+            return;
+          }
+
           if (status === 'thinking') {
             setConversations(prev =>
               prev.map(c => {
@@ -306,6 +424,11 @@ export function useChat() {
 
         // Streamed user-facing content token
         onToken: (token) => {
+          // Reject stale or aborted events
+          if (controller.signal.aborted || activeRequestIdRef.current !== currentRequestId) {
+            return;
+          }
+
           setConversations(prev =>
             prev.map(c => {
               if (c.id !== targetConvId) return c;
@@ -328,6 +451,11 @@ export function useChat() {
 
         // Generation successfully finished
         onDone: () => {
+          // Reject stale or aborted events
+          if (controller.signal.aborted || activeRequestIdRef.current !== currentRequestId) {
+            return;
+          }
+
           setConversations(prev =>
             prev.map(c => {
               if (c.id !== targetConvId) return c;
@@ -342,6 +470,7 @@ export function useChat() {
               };
             })
           );
+
           setIsGenerating(false);
           setGeneratingConvId(null);
           generatingConvIdRef.current = null;
@@ -351,6 +480,11 @@ export function useChat() {
 
         // Generation error
         onError: (err) => {
+          // Reject stale or aborted events
+          if (controller.signal.aborted || activeRequestIdRef.current !== currentRequestId) {
+            return;
+          }
+
           console.error('[useChat] Stream error:', err);
           setConversations(prev =>
             prev.map(c => {
@@ -371,6 +505,7 @@ export function useChat() {
               };
             })
           );
+
           setIsGenerating(false);
           setGeneratingConvId(null);
           generatingConvIdRef.current = null;
@@ -379,7 +514,7 @@ export function useChat() {
         }
       });
     } catch (err) {
-      if (err.name !== 'AbortError') {
+      if (err.name !== 'AbortError' && !controller.signal.aborted && activeRequestIdRef.current === currentRequestId) {
         console.error('[useChat] Unexpected error during chat streaming:', err);
         setConversations(prev =>
           prev.map(c => {
@@ -401,11 +536,14 @@ export function useChat() {
           })
         );
       }
-      setIsGenerating(false);
-      setGeneratingConvId(null);
-      generatingConvIdRef.current = null;
-      activeRequestIdRef.current = null;
-      abortControllerRef.current = null;
+
+      if (activeRequestIdRef.current === currentRequestId) {
+        setIsGenerating(false);
+        setGeneratingConvId(null);
+        generatingConvIdRef.current = null;
+        activeRequestIdRef.current = null;
+        abortControllerRef.current = null;
+      }
     }
   }, [activeId, isGenerating]);
 

@@ -46,21 +46,26 @@ To enable Ruan AI to communicate with your local models:
 
 ---
 
-## 3. Planned Monorepo Setup (When Initializing Phase 1)
+## 3. Local Monorepo Setup & Execution
 
-> **Note:** The repository is currently in its documentation phase. When Phase 1 implementation begins, the setup process will proceed as follows:
+Both `client/` and `server/` are initialized with ES Modules and standalone `package.json` manifests.
 
 ### Step 1: Backend Setup (`server/`)
 ```powershell
 # Navigate to server directory
 cd c:\Ruan-AI\server
 
-# Initialize package & install runtime dependencies (Phase 1)
-npm init -y
-npm install express cors dotenv multer
+# Install dependencies
+npm install
 
-# Create local environment file
-Copy-Item .env.example .env
+# Ensure local environment configuration exists
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+
+# Run Express server (runs on http://127.0.0.1:5000)
+npm start
+
+# Or run with Node --watch for active development
+npm run dev
 ```
 
 ### Step 2: Frontend Setup (`client/`)
@@ -68,11 +73,20 @@ Copy-Item .env.example .env
 # Navigate to client directory
 cd c:\Ruan-AI\client
 
-# Initialize Vite React template
-npm create vite@latest . -- --template react
+# Install dependencies
+npm install
 
-# Verify structure and prepare Vanilla CSS system
+# Run Vite development server (runs on http://127.0.0.1:5173)
+npm run dev
+
+# Or build production bundle
+npm run build
 ```
+
+### Step 3: Application Access
+* **Product Overview & Landing Page:** `http://localhost:5173/`
+* **Dedicated Conversation Interface:** `http://localhost:5173/app`
+* **Express Gateway Health Endpoint:** `http://localhost:5000/api/health`
 
 ---
 

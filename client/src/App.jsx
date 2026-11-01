@@ -18,21 +18,44 @@ import ChatPage from './pages/ChatPage';
 
 import './styles/App.css';
 
+/**
+ * Explicitly resolves the active route from window pathname.
+ * Permitted canonical routes:
+ *   '/' -> 'home'
+ *   '/app' -> 'app'
+ * Any unrecognized route -> 'not-found'
+ * 
+ * @param {string} pathname
+ * @returns {{ type: 'home' | 'app' | 'not-found', path: string }}
+ */
+function resolveRoute(pathname = '/') {
+  // Strip search parameters, hash fragments, and trailing slashes
+  const clean = pathname.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+  if (clean === '/') {
+    return { type: 'home', path: '/' };
+  }
+  if (clean === '/app') {
+    return { type: 'app', path: '/app' };
+  }
+  return { type: 'not-found', path: clean };
+}
+
 export default function App() {
-  // Path routing: Support / (Landing Page) and /app (Conversation Interface)
-  const [currentRoute, setCurrentRoute] = useState(() => {
+  // Explicit route resolution: 'home' | 'app' | 'not-found'
+  const [routeInfo, setRouteInfo] = useState(() => {
     try {
       if (typeof window !== 'undefined') {
-        return window.location.pathname.startsWith('/app') ? '/app' : '/';
+        return resolveRoute(window.location.pathname);
       }
     } catch {}
-    return '/';
+    return { type: 'home', path: '/' };
   });
 
   const [isInitialized, setIsInitialized] = useState(() => {
     try {
       if (typeof window !== 'undefined') {
-        if (window.location.pathname.startsWith('/app')) return true;
+        const resolved = resolveRoute(window.location.pathname);
+        if (resolved.type === 'app') return true;
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const alreadyVisited = sessionStorage.getItem('ruan_initialized') === 'true';
         return prefersReducedMotion || alreadyVisited;
@@ -46,7 +69,7 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       if (typeof window !== 'undefined') {
-        setCurrentRoute(window.location.pathname.startsWith('/app') ? '/app' : '/');
+        setRouteInfo(resolveRoute(window.location.pathname));
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -56,7 +79,7 @@ export default function App() {
   const navigateTo = useCallback((path) => {
     if (typeof window !== 'undefined') {
       window.history.pushState({}, '', path);
-      setCurrentRoute(path.startsWith('/app') ? '/app' : '/');
+      setRouteInfo(resolveRoute(path));
       window.scrollTo(0, 0);
     }
   }, []);
@@ -139,13 +162,16 @@ export default function App() {
 
   return (
     <div className="ruan-app" id="ruan-app-root">
-      {/* Route: /app (Dedicated Conversation Application) */}
-      {currentRoute === '/app' ? (
+      {/* Route 1: /app (Dedicated Conversation Application) */}
+      {routeInfo.type === 'app' && (
         <ChatPage
           navigateTo={navigateTo}
           onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
         />
-      ) : (
+      )}
+
+      {/* Route 2: / (Canonical Public Landing Page) */}
+      {routeInfo.type === 'home' && (
         <>
           {/* Cinematic Animated Initialization Screen (Landing Page only) */}
           {!isInitialized && (
@@ -200,6 +226,33 @@ export default function App() {
             <Footer onExploreDocs={handleScrollToDocs} />
           </div>
         </>
+      )}
+
+      {/* Route 3: Deliberate 404 Fallback for Unrecognized Paths */}
+      {routeInfo.type === 'not-found' && (
+        <div className="route-fallback-screen" role="alert">
+          <div className="fallback-badge font-mono">404 • UNRECOGNIZED ROUTE</div>
+          <h1 className="fallback-heading">Route Not Found</h1>
+          <p className="fallback-description">
+            The path <code className="fallback-path-code font-mono">{routeInfo.path}</code> does not map to any active application route in Ruan AI.
+          </p>
+          <div className="fallback-actions">
+            <button
+              className="fallback-btn-primary"
+              onClick={() => navigateTo('/')}
+              type="button"
+            >
+              Return to Overview (/)
+            </button>
+            <button
+              className="fallback-btn-secondary"
+              onClick={() => navigateTo('/app')}
+              type="button"
+            >
+              Open Ruan AI App (/app)
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Live Diagnostics Modal - Rendered outside transformed container for correct viewport positioning */}

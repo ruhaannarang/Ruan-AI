@@ -56,6 +56,10 @@ Phase 6: Advanced Voice and Autonomous Capabilities
 * [x] Build LM Studio connector service (`/v1/chat/completions` OpenAI-compatible client with dynamic context length support).
 * [x] Implement Server-Sent Events (SSE) streaming endpoint (`/api/chat/stream`).
 * [x] Implement generation cancellation endpoint (`/api/chat/abort`).
+* [x] Suppress internal model reasoning tokens (`delta.reasoning_content`) and display clean Thinking indicators.
+* [x] Build dedicated desktop-style conversation interface (`/app`) with multi-turn history, welcome screen, and message composer.
+* [x] Implement safe React-based Markdown rendering and syntax-highlighted code blocks with copy buttons.
+* [x] Implement in-memory conversation search, conversation switching, and robust `localStorage` persistence.
 * [ ] Build frontend Push-to-Talk recording service (`useAudioRecorder`).
 * [ ] Implement transient STT transcription endpoint (`/api/voice/transcribe`) evaluating `faster-whisper` vs `whisper.cpp`.
 * [ ] Implement streaming sentence-chunked TTS adapter (`ttsService.js`) evaluating `Piper` vs `Kokoro`.
