@@ -68,7 +68,43 @@ npm start
 npm run dev
 ```
 
-### Step 2: Frontend Setup (`client/`)
+### Step 2: Voice Service Setup (`voice-service/`)
+The voice service runs a dedicated local microservice on `127.0.0.1:8008` hosting `faster-whisper` (STT) and `Kokoro 82M` (TTS):
+
+```powershell
+# Navigate to voice-service directory
+cd c:\Ruan-AI\voice-service
+
+# Create virtual environment (Python 3.10–3.12 recommended)
+python -m venv .venv
+
+# Activate virtual environment
+.\.venv\Scripts\activate
+
+# Install dependencies (faster-whisper, kokoro-onnx, soundfile, fastapi, uvicorn)
+pip install -r requirements.txt
+
+# Download Kokoro ONNX model and voices into models/ directory (if not present)
+python -c "
+import os, urllib.request
+os.makedirs('models', exist_ok=True)
+files = {
+    'kokoro-v1.0.onnx': 'https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx',
+    'voices-v1.0.bin': 'https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin'
+}
+for name, url in files.items():
+    dest = os.path.join('models', name)
+    if not os.path.exists(dest):
+        print(f'Downloading {name}...')
+        urllib.request.urlretrieve(url, dest)
+print('Voice models ready!')
+"
+
+# Run the voice service (listens on http://127.0.0.1:8008)
+python app.py
+```
+
+### Step 3: Frontend Setup (`client/`)
 ```powershell
 # Navigate to client directory
 cd c:\Ruan-AI\client
@@ -83,10 +119,11 @@ npm run dev
 npm run build
 ```
 
-### Step 3: Application Access
+### Step 4: Application Access
 * **Product Overview & Landing Page:** `http://localhost:5173/`
 * **Dedicated Conversation Interface:** `http://localhost:5173/app`
 * **Express Gateway Health Endpoint:** `http://localhost:5000/api/health`
+* **Voice Service Health Endpoint:** `http://localhost:8008/health`
 
 ---
 
@@ -97,6 +134,7 @@ During active development, services will run concurrently on localhost:
 | Service | Working Directory | Default URL | Command |
 |---|---|---|---|
 | **LM Studio Local Server** | Standalone App | `http://localhost:1234` | Managed via LM Studio UI |
+| **Python Voice Service** | `c:\Ruan-AI\voice-service` | `http://127.0.0.1:8008` | `python app.py` |
 | **Express Backend** | `c:\Ruan-AI\server` | `http://localhost:5000` | `npm run dev` |
 | **React Frontend** | `c:\Ruan-AI\client` | `http://localhost:5173` | `npm run dev` |
 | **Electron Shell (Phase 5)** | `c:\Ruan-AI\desktop` | Native Window | `npm start` |
@@ -151,6 +189,12 @@ SESSION_MAX_AGE_MS=604800000
 * `POST /api/auth/logout`: Invalidates session in SQLite database and clears session cookie.
 * `POST /api/voice/transcribe`: Accepts audio blob via Push-to-Talk, transcribes to text string, and flushes raw audio from memory.
 * `POST /api/voice/synthesize`: Synthesizes text string into audio buffer.
+* `GET /api/voice/voices`: Lists available Kokoro TTS voice profiles.
+* `GET /api/voice/benchmark/prompts`: Returns standard 15 benchmark sentences across 4 categories (English, Hindi, Romanized Hinglish, Technical Hinglish).
+* `POST /api/voice/benchmark/compare`: Runs comparative STT evaluation (`faster-whisper-small` vs `faster-whisper-base`), computing WER, latency, RTF, and technical term retention.
+* `POST /api/voice/benchmark/save`: Persists sample and evaluation metadata locally in `voice-service/benchmark_data/` (strictly gitignored).
+* `GET /api/voice/benchmark/history`: Returns local benchmark dataset history and summary statistics.
+* `DELETE /api/voice/benchmark/history`: Clears local benchmark dataset.
 
 ---
 
@@ -158,6 +202,8 @@ SESSION_MAX_AGE_MS=604800000
 
 1. **Verify LM Studio First:** If streaming fails or hangs, check `http://localhost:5000/api/health` to see if LM Studio is reachable.
 2. **Browser Microphone Access:** Browsers allow `getUserMedia` without HTTPS only on `localhost` / `127.0.0.1`. Ensure testing occurs on `http://localhost:5173` and microphone permissions are granted.
-3. **Decoupled Diagnostics:** Verify that `/api/health` returns `200 OK` even if LM Studio or voice candidates are uninitialized, accurately reflecting their individual states in the JSON payload.
-4. **Playback Interruption:** Test that triggering Push-to-Talk, clicking Stop, or entering a new prompt immediately aborts audio playback and cancels backend processing via `/api/chat/abort`.
-5. **Clean Commits:** Run code formatting checks and verify clean syntax before committing changes.
+3. **Review Before Send:** By default, Push-to-Talk populates the composer input for review and editing before sending to avoid submitting mistranscribed words or acronyms.
+4. **Decoupled Diagnostics:** Verify that `/api/health` returns `200 OK` even if LM Studio or voice candidates are uninitialized, accurately reflecting their individual states in the JSON payload.
+5. **Playback Interruption:** Test that triggering Push-to-Talk, clicking Stop, or entering a new prompt immediately aborts audio playback and cancels backend processing via `/api/chat/abort`.
+6. **Hinglish Benchmarking:** Test speech recognition across models using the in-app benchmark modal (`🎙️ Benchmark` in the top header) or the CLI runner (`python voice-service/benchmark_hinglish.py --summary`).
+7. **Clean Commits:** Run code formatting checks and verify clean syntax before committing changes. All benchmark audio and personal recordings must remain strictly local and gitignored.

@@ -41,3 +41,29 @@ server/data/*.sqlite-journal
 # Testing & coverage
 coverage/
 .nyc_output/
+
+# Python & Voice Service
+.venv/
+*/.venv/
+__pycache__/
+*/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+voice-service/models/*.onnx
+voice-service/models/*.bin
+voice-service/test_out/
+test_out_*.wav
+*.wav
+*.webm
+*.ogg
+*.mp3
+*.m4a
+*.flac
+
+# Benchmark audio recordings & datasets (Strictly local, never committed)
+voice-service/benchmark_data/
+benchmark_data/
+benchmark_results.json
+voice-service/benchmark_results.json
+

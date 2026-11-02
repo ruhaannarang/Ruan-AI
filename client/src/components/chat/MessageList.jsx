@@ -5,7 +5,8 @@ import './MessageList.css';
 
 export default function MessageList({
   messages,
-  isGenerating
+  isGenerating,
+  voiceState
 }) {
   const containerRef = useRef(null);
   const bottomAnchorRef = useRef(null);
@@ -58,7 +59,11 @@ export default function MessageList({
     >
       <div className="message-list-inner">
         {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+          <MessageBubble
+            key={message.id}
+            message={message}
+            voiceState={voiceState}
+          />
         ))}
         <div ref={bottomAnchorRef} className="scroll-bottom-anchor" />
       </div>

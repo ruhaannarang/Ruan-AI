@@ -1,5 +1,6 @@
 import { config } from '../config/index.js';
 import { lmStudioService } from '../services/lmStudioService.js';
+import { voiceService } from '../services/voice/voiceService.js';
 
 const startTime = Date.now();
 
@@ -11,7 +12,10 @@ const startTime = Date.now();
 export const getHealth = async (req, res, next) => {
   try {
     const uptimeSeconds = Math.floor((Date.now() - startTime) / 1000);
-    const lmHealth = await lmStudioService.checkHealth();
+    const [lmHealth, voiceHealth] = await Promise.all([
+      lmStudioService.checkHealth(),
+      voiceService.checkHealth()
+    ]);
 
     const healthPayload = {
       status: 'ok',
@@ -28,16 +32,8 @@ export const getHealth = async (req, res, next) => {
           availableModels: lmHealth.availableModels,
           error: lmHealth.error
         },
-        stt: {
-          status: 'uninitialized',
-          candidate: config.voice.sttCandidate,
-          note: 'Speech-to-text candidate engine pending Phase 1 evaluation'
-        },
-        tts: {
-          status: 'uninitialized',
-          candidate: config.voice.ttsCandidate,
-          note: 'Text-to-speech candidate engine pending Phase 1 evaluation'
-        }
+        stt: voiceHealth.stt,
+        tts: voiceHealth.tts
       }
     };
 

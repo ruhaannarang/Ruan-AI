@@ -135,7 +135,12 @@ function persistConversationsToStorage(conversations) {
  * If the user initiates a new chat or deletes a generating conversation, any active
  * generation is cleanly aborted upstream and locally to safeguard consumer GPU VRAM.
  */
-export function useChat() {
+export function useChat(options = {}) {
+  const optionsRef = useRef(options);
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
+
   // Load persisted conversations or initialize with a clean one
   const [conversations, setConversations] = useState(() => {
     try {
@@ -264,6 +269,9 @@ export function useChat() {
 
     setIsGenerating(false);
     setGeneratingConvId(null);
+    if (optionsRef.current?.onStop) {
+      optionsRef.current.onStop();
+    }
   }, []);
 
   /**
@@ -393,6 +401,7 @@ export function useChat() {
     activeRequestIdRef.current = currentRequestId;
     abortControllerRef.current = controller;
     generatingConvIdRef.current = targetConvId;
+    let accumulatedText = '';
 
     setIsGenerating(true);
     setGeneratingConvId(targetConvId);
@@ -431,6 +440,8 @@ export function useChat() {
           if (controller.signal.aborted || activeRequestIdRef.current !== currentRequestId) {
             return;
           }
+
+          accumulatedText += token;
 
           setConversations(prev =>
             prev.map(c => {
@@ -484,6 +495,14 @@ export function useChat() {
           generatingConvIdRef.current = null;
           activeRequestIdRef.current = null;
           abortControllerRef.current = null;
+
+          if (optionsRef.current?.onGenerationDone && accumulatedText) {
+            optionsRef.current.onGenerationDone({
+              id: assistantMessageId,
+              content: accumulatedText,
+              conversationId: targetConvId
+            });
+          }
         },
 
         // Generation error

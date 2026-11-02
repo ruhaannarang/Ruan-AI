@@ -1,10 +1,32 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '../hooks/useChat';
+import { useVoice } from '../hooks/useVoice';
 import ChatLayout from '../components/chat/ChatLayout';
+import HinglishBenchmarkModal from '../components/chat/HinglishBenchmarkModal';
 import './ChatPage.css';
 
 export default function ChatPage({ navigateTo, onOpenDiagnostics }) {
-  const chatState = useChat();
+  const [isBenchmarkOpen, setIsBenchmarkOpen] = useState(false);
+  const voiceStateRef = useRef(null);
+
+  const chatState = useChat({
+    onGenerationDone: (msg) => {
+      // If Voice Mode is active, auto-speak assistant response
+      if (voiceStateRef.current?.isVoiceMode && msg.content) {
+        voiceStateRef.current.speakMessage(msg.id, msg.content);
+      }
+    },
+    onStop: () => {
+      voiceStateRef.current?.stopPlayback();
+    }
+  });
+
+  const voiceState = useVoice({
+    onSendMessage: (text, convId) => chatState.sendMessage(text, convId),
+    activeConversationId: chatState.activeConversation?.id
+  });
+
+  voiceStateRef.current = voiceState;
 
   // Update document title dynamically
   useEffect(() => {
@@ -24,23 +46,41 @@ export default function ChatPage({ navigateTo, onOpenDiagnostics }) {
         e.preventDefault();
         chatState.createNewChat();
       }
-      // Escape to stop generation if generating
-      if (e.key === 'Escape' && chatState.isGenerating) {
-        e.preventDefault();
-        chatState.stopGeneration();
+      // Escape to stop generation or playback
+      if (e.key === 'Escape') {
+        if (chatState.isGenerating) {
+          e.preventDefault();
+          chatState.stopGeneration();
+        }
+        if (voiceState.isPlaying) {
+          e.preventDefault();
+          voiceState.stopPlayback();
+        }
+        if (voiceState.isRecording) {
+          e.preventDefault();
+          voiceState.cancelRecording();
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [chatState]);
+  }, [chatState, voiceState]);
 
   return (
     <div className="ruan-chat-page" id="ruan-chat-page-root">
       <ChatLayout
         chatState={chatState}
+        voiceState={voiceState}
         navigateTo={navigateTo}
         onOpenDiagnostics={onOpenDiagnostics}
+        onOpenBenchmark={() => setIsBenchmarkOpen(true)}
+      />
+
+      {/* Phase 1.6.1 Hinglish & Voice Quality Benchmark Modal */}
+      <HinglishBenchmarkModal
+        isOpen={isBenchmarkOpen}
+        onClose={() => setIsBenchmarkOpen(false)}
       />
     </div>
   );

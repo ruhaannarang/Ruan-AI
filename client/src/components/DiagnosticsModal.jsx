@@ -132,16 +132,16 @@ export default function DiagnosticsModal({
               <div className="subsystem-card">
                 <div className="subsystem-top font-mono">
                   <span>🎙️ SPEECH-TO-TEXT</span>
-                  <span className={`pill ${healthData?.services?.stt?.status || 'uninitialized'}`}>
-                    {healthData?.services?.stt?.status || 'Uninitialized'}
+                  <span className={`pill ${healthData?.services?.stt?.status === 'ready' ? 'connected' : (healthData?.services?.stt?.status || 'uninitialized')}`}>
+                    {healthData?.services?.stt?.status === 'ready' ? '● READY' : (healthData?.services?.stt?.status?.toUpperCase() || 'UNINITIALIZED')}
                   </span>
                 </div>
                 <div className="subsystem-props font-mono">
-                  <div><span>CANDIDATES:</span> <strong>faster-whisper / whisper.cpp</strong></div>
-                  <div><span>POLICY:</span> <strong>Push-to-Talk (Transient)</strong></div>
+                  <div><span>ENGINE:</span> <strong>{healthData?.services?.stt?.candidate || 'faster-whisper'} ({healthData?.services?.stt?.model || 'small'}, {healthData?.services?.stt?.computeType || 'int8'})</strong></div>
+                  <div><span>DEVICE:</span> <strong>CPU ({healthData?.services?.stt?.device || 'cpu'}) • Push-to-Talk</strong></div>
                 </div>
                 <p className="subsystem-note">
-                  {healthData?.services?.stt?.note || 'Speech-to-text candidate engine pending Phase 1 evaluation.'}
+                  {healthData?.services?.stt?.error || (healthData?.services?.stt?.status === 'ready' ? 'faster-whisper active with auto-multilingual Hinglish & English transcription.' : 'Speech-to-text service offline or uninitialized.')}
                 </p>
               </div>
 
@@ -149,16 +149,16 @@ export default function DiagnosticsModal({
               <div className="subsystem-card">
                 <div className="subsystem-top font-mono">
                   <span>🔊 TEXT-TO-SPEECH</span>
-                  <span className={`pill ${healthData?.services?.tts?.status || 'uninitialized'}`}>
-                    {healthData?.services?.tts?.status || 'Uninitialized'}
+                  <span className={`pill ${healthData?.services?.tts?.status === 'ready' ? 'connected' : (healthData?.services?.tts?.status || 'uninitialized')}`}>
+                    {healthData?.services?.tts?.status === 'ready' ? '● READY' : (healthData?.services?.tts?.status?.toUpperCase() || 'UNINITIALIZED')}
                   </span>
                 </div>
                 <div className="subsystem-props font-mono">
-                  <div><span>CANDIDATES:</span> <strong>Piper / Kokoro</strong></div>
-                  <div><span>DELIVERY:</span> <strong>Sentence Chunks + Abort</strong></div>
+                  <div><span>ENGINE:</span> <strong>{healthData?.services?.tts?.provider || 'Kokoro 82M'}</strong></div>
+                  <div><span>VOICE:</span> <strong>{healthData?.services?.tts?.voice || 'hf_alpha'} (Hinglish/Hindi/English)</strong></div>
                 </div>
                 <p className="subsystem-note">
-                  {healthData?.services?.tts?.note || 'Text-to-speech candidate engine pending Phase 1 evaluation.'}
+                  {healthData?.services?.tts?.error || (healthData?.services?.tts?.status === 'ready' ? 'Kokoro-82M ONNX active with sentence chunking and interruption support.' : 'Text-to-speech service offline or uninitialized.')}
                 </p>
               </div>
             </div>

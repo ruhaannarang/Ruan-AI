@@ -1,0 +1,10 @@
+# Ruan AI Voice Service Dependencies
+faster-whisper>=1.2.1
+av<18.0.0
+kokoro-onnx>=0.6.1
+soundfile>=0.14.0
+fastapi>=0.115.0
+uvicorn>=0.30.0
+python-multipart>=0.0.9
+numpy>=1.26.0
+

@@ -1,0 +1,321 @@
+{
+  "pythonHealth": {
+    "status": 200,
+    "data": {
+      "status": "ok",
+      "stt": {
+        "status": "ready",
+        "provider": "faster-whisper",
+        "model": "small",
+        "device": "cpu",
+        "compute_type": "int8",
+        "cpu_threads": 4
+      },
+      "tts": {
+        "status": "ready",
+        "provider": "kokoro-82m",
+        "default_voice": "hf_alpha",
+        "fallback_voice": "af_heart",
+        "available_voices": [
+          "af_alloy",
+          "af_aoede",
+          "af_bella",
+          "af_heart",
+          "af_jessica",
+          "af_kore",
+          "af_nicole",
+          "af_nova",
+          "af_river",
+          "af_sarah",
+          "af_sky",
+          "am_adam",
+          "am_echo",
+          "am_eric",
+          "am_fenrir",
+          "am_liam",
+          "am_michael",
+          "am_onyx",
+          "am_puck",
+          "am_santa",
+          "bf_alice",
+          "bf_emma",
+          "bf_isabella",
+          "bf_lily",
+          "bm_daniel",
+          "bm_fable",
+          "bm_george",
+          "bm_lewis",
+          "ef_dora",
+          "em_alex",
+          "em_santa",
+          "ff_siwis",
+          "hf_alpha",
+          "hf_beta",
+          "hm_omega",
+          "hm_psi",
+          "if_sara",
+          "im_nicola",
+          "jf_alpha",
+          "jf_gongitsune",
+          "jf_nezumi",
+          "jf_tebukuro",
+          "jm_kumo",
+          "pf_dora",
+          "pm_alex",
+          "pm_santa",
+          "zf_xiaobei",
+          "zf_xiaoni",
+          "zf_xiaoxiao",
+          "zf_xiaoyi",
+          "zm_yunjian",
+          "zm_yunxi",
+          "zm_yunxia",
+          "zm_yunyang"
+        ]
+      }
+    }
+  },
+  "expressHealth": {
+    "status": 200,
+    "data": {
+      "status": "ok",
+      "version": "0.1.0-alpha.4",
+      "uptime": 1,
+      "timestamp": "2026-11-02T18:27:19.228Z",
+      "environment": "development",
+      "services": {
+        "lmStudio": {
+          "status": "connected",
+          "endpoint": "http://localhost:1234/v1",
+          "activeModel": "gemma-4-e2b-it-qat",
+          "modelAvailable": true,
+          "availableModels": [
+            "gemma-4-e2b-it-qat",
+            "qwen/qwen2.5-vl-7b",
+            "ling-3.0-tiny",
+            "text-embedding-nomic-embed-text-v1.5"
+          ],
+          "error": null
+        },
+        "stt": {
+          "status": "ready",
+          "candidate": "faster-whisper",
+          "model": "small",
+          "device": "cpu",
+          "computeType": "int8",
+          "error": null
+        },
+        "tts": {
+          "status": "ready",
+          "candidate": "kokoro",
+          "voice": "hf_alpha",
+          "provider": "kokoro-82m",
+          "error": null
+        }
+      }
+    }
+  },
+  "voiceHealth": {
+    "status": 200,
+    "data": {
+      "status": "ok",
+      "services": {
+        "stt": {
+          "status": "ready",
+          "candidate": "faster-whisper",
+          "model": "small",
+          "device": "cpu",
+          "computeType": "int8",
+          "error": null
+        },
+        "tts": {
+          "status": "ready",
+          "candidate": "kokoro",
+          "voice": "hf_alpha",
+          "provider": "kokoro-82m",
+          "error": null
+        }
+      }
+    }
+  },
+  "voicesList": {
+    "default_voice": "hf_alpha",
+    "voices": [
+      "af_alloy",
+      "af_aoede",
+      "af_bella",
+      "af_heart",
+      "af_jessica",
+      "af_kore",
+      "af_nicole",
+      "af_nova",
+      "af_river",
+      "af_sarah",
+      "af_sky",
+      "am_adam",
+      "am_echo",
+      "am_eric",
+      "am_fenrir",
+      "am_liam",
+      "am_michael",
+      "am_onyx",
+      "am_puck",
+      "am_santa",
+      "bf_alice",
+      "bf_emma",
+      "bf_isabella",
+      "bf_lily",
+      "bm_daniel",
+      "bm_fable",
+      "bm_george",
+      "bm_lewis",
+      "ef_dora",
+      "em_alex",
+      "em_santa",
+      "ff_siwis",
+      "hf_alpha",
+      "hf_beta",
+      "hm_omega",
+      "hm_psi",
+      "if_sara",
+      "im_nicola",
+      "jf_alpha",
+      "jf_gongitsune",
+      "jf_nezumi",
+      "jf_tebukuro",
+      "jm_kumo",
+      "pf_dora",
+      "pm_alex",
+      "pm_santa",
+      "zf_xiaobei",
+      "zf_xiaoni",
+      "zf_xiaoxiao",
+      "zf_xiaoyi",
+      "zm_yunjian",
+      "zm_yunxi",
+      "zm_yunxia",
+      "zm_yunyang"
+    ]
+  },
+  "synthesisResults": [
+    {
+      "id": 1,
+      "text": "Ruan, mujhe kal subah 9 baje college jaana hai.",
+      "sizeBytes": 246860,
+      "latencyMs": 3435,
+      "approxDurationSec": 5.14,
+      "rtf": 0.67
+    },
+    {
+      "id": 2,
+      "text": "Mujhe Java mein linked list explain karo.",
+      "sizeBytes": 157772,
+      "latencyMs": 3221,
+      "approxDurationSec": 3.29,
+      "rtf": 0.98
+    },
+    {
+      "id": 3,
+      "text": "Can you help me debug this code? Isme NullPointerException aa raha hai.",
+      "sizeBytes": 279660,
+      "latencyMs": 6282,
+      "approxDurationSec": 5.83,
+      "rtf": 1.08
+    },
+    {
+      "id": 4,
+      "text": "Aaj mujhe React ka ek component banana hai, please guide me.",
+      "sizeBytes": 277580,
+      "latencyMs": 4368,
+      "approxDurationSec": 5.78,
+      "rtf": 0.76
+    },
+    {
+      "id": 5,
+      "text": "Mera backend server start nahi ho raha, logs check karne mein help karo.",
+      "sizeBytes": 281676,
+      "latencyMs": 3540,
+      "approxDurationSec": 5.87,
+      "rtf": 0.6
+    }
+  ],
+  "transcriptionResults": [
+    {
+      "id": 1,
+      "original": "Ruan, mujhe kal subah 9 baje college jaana hai.",
+      "transcribed": "In Rewan he, in Madhya Kaal Sabahi, not in Beach College Jhana Hai he.",
+      "language": "en",
+      "languageProbability": 0.291,
+      "duration": 5.14,
+      "processingTime": 6.506,
+      "latencyMs": 6554
+    },
+    {
+      "id": 2,
+      "original": "Mujhe Java mein linked list explain karo.",
+      "transcribed": "Majhe Java main, linked list explain carol.",
+      "language": "en",
+      "languageProbability": 0.941,
+      "duration": 3.29,
+      "processingTime": 5.199,
+      "latencyMs": 5222
+    },
+    {
+      "id": 3,
+      "original": "Can you help me debug this code? Isme NullPointerException aa raha hai.",
+      "transcribed": "Can you help me debug this code in ismi null pointer exception or raha-hi?",
+      "language": "en",
+      "languageProbability": 0.895,
+      "duration": 5.83,
+      "processingTime": 5.333,
+      "latencyMs": 5349
+    },
+    {
+      "id": 4,
+      "original": "Aaj mujhe React ka ek component banana hai, please guide me.",
+      "transcribed": "इं आज मज्य रियाक्त कार अग कमपनन पनाना है ही, इं प्लीज गाइद मी ही.",
+      "language": "hi",
+      "languageProbability": 0.761,
+      "duration": 5.78,
+      "processingTime": 7.246,
+      "latencyMs": 7267
+    },
+    {
+      "id": 5,
+      "original": "Mera backend server start nahi ho raha, logs check karne mein help karo.",
+      "transcribed": "In Mira Bakken, server start nahi hou rahi.  In Logs check, can't main help karohi.",
+      "language": "en",
+      "languageProbability": 0.573,
+      "duration": 5.87,
+      "processingTime": 5.305,
+      "latencyMs": 5335
+    }
+  ],
+  "edgeCases": [
+    {
+      "case": "Empty audio",
+      "status": 400,
+      "code": "EMPTY_AUDIO_FILE"
+    },
+    {
+      "case": "Empty text synthesis",
+      "status": 400,
+      "code": "INVALID_TEXT_PAYLOAD"
+    },
+    {
+      "case": "English-only",
+      "detectedLang": "en",
+      "text": "Hello, Ruin. Please show me how to build an Express server."
+    },
+    {
+      "case": "Pure Hindi",
+      "detectedLang": "hi",
+      "text": "नमस्टे आजका दिन कैसा है."
+    }
+  ],
+  "memoryUsage": {
+    "rssMb": 73.59,
+    "heapUsedMb": 15.08,
+    "heapTotalMb": 17.25
+  }
+}

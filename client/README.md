@@ -64,8 +64,12 @@ client/
 
 ## Current Status
  
-* **Status:** Phase 1 & Phase 1.5 Implemented (`v0.1.0-alpha.4`).
+* **Status:** Phase 1.6 Implemented (`v0.1.0-alpha.5`).
 * **Active Components:**
   * Public Landing Page (`/`) with cinematic loading screen, sound effects, 3D orb centerpiece, architecture diagrams, and diagnostics modal.
   * Dedicated Conversation Application (`/app`) with collapsible sidebar, multi-turn chat, safe markdown rendering, syntax-highlighted code blocks with copy, dynamic model status indicator (configured for Gemma 4 E2B IT QAT), and robust `localStorage` persistence.
-* **Next Milestone:** Basic Voice Assistant integration (Push-to-Talk recording service `useAudioRecorder`, audio playback coordinator `useAudioPlayer`, and mode switching).
+  * Push-to-Talk voice interface (`useVoice.js`, `MessageComposer.jsx`) with microphone button, live recording waveform animation, transcribing spinner, and error banner notifications.
+  * Speech synthesis playback (`voiceApi.js`, `MessageBubble.jsx`) with inline Speak/Stop buttons on assistant messages.
+  * Auto-speaking **Voice Mode** toggle pill in header bar with session persistence.
+  * Instant audio interruption: silences audio and clears queues when user clicks Stop, begins a new recording, or switches conversations.
+* **Next Milestone:** Phase 2: Persistent Memory & Context Window Management with SQLite.

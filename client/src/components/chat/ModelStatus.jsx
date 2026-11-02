@@ -135,6 +135,28 @@ export default function ModelStatus({ onOpenDiagnostics }) {
                 {activeModel} {modelAvailable ? '(Ready)' : '(Unavailable)'}
               </span>
             </div>
+
+            {/* STT Engine */}
+            <div className="popover-item">
+              <div className="item-label-row">
+                <span className={`mini-dot ${healthData?.services?.stt?.status === 'ready' ? 'connected' : 'disconnected'}`} />
+                <span className="item-name">STT (faster-whisper)</span>
+              </div>
+              <span className="item-value font-mono">
+                {healthData?.services?.stt?.status === 'ready' ? `${healthData?.services?.stt?.model || 'small'} (Ready)` : 'Offline'}
+              </span>
+            </div>
+
+            {/* TTS Engine */}
+            <div className="popover-item">
+              <div className="item-label-row">
+                <span className={`mini-dot ${healthData?.services?.tts?.status === 'ready' ? 'connected' : 'disconnected'}`} />
+                <span className="item-name">TTS (Kokoro 82M)</span>
+              </div>
+              <span className="item-value font-mono">
+                {healthData?.services?.tts?.status === 'ready' ? `${healthData?.services?.tts?.voice || 'hf_alpha'} (Ready)` : 'Offline'}
+              </span>
+            </div>
           </div>
 
           {onOpenDiagnostics && (

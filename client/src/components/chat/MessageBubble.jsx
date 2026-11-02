@@ -16,7 +16,7 @@ function formatTime(timestamp) {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function MessageBubble({ message }) {
+export default function MessageBubble({ message, voiceState }) {
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
@@ -129,6 +129,39 @@ export default function MessageBubble({ message }) {
         {/* Action Row for Assistant responses */}
         {!isUser && message.content && !message.isStreaming && (
           <div className="message-actions">
+            {voiceState && (
+              <button
+                className={`action-btn font-mono ${voiceState.activePlayingId === message.id ? 'playing' : ''}`}
+                onClick={() => {
+                  if (voiceState.activePlayingId === message.id) {
+                    voiceState.stopPlayback();
+                  } else {
+                    voiceState.speakMessage(message.id, message.content);
+                  }
+                }}
+                aria-label={voiceState.activePlayingId === message.id ? 'Stop audio playback' : 'Play spoken response'}
+                title={voiceState.activePlayingId === message.id ? 'Stop audio' : 'Listen with Kokoro TTS'}
+                type="button"
+              >
+                {voiceState.activePlayingId === message.id ? (
+                  <>
+                    <svg className="action-icon" viewBox="0 0 16 16" fill="currentColor">
+                      <rect x="3" y="3" width="10" height="10" rx="1.5" />
+                    </svg>
+                    <span>Stop</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="action-icon" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M11.559 1.44a.75.75 0 00-1.06 1.06 5.5 5.5 0 010 7.78.75.75 0 101.06 1.06 7 7 0 000-9.9z" />
+                      <path d="M7 3.25v9.5a.75.75 0 01-1.28.53L3.18 10.75H1.5A1.5 1.5 0 010 9.25v-2.5A1.5 1.5 0 011.5 5.25h1.68l2.54-2.53A.75.75 0 017 3.25z" />
+                    </svg>
+                    <span>Speak</span>
+                  </>
+                )}
+              </button>
+            )}
+
             <button
               className={`action-btn font-mono ${copied ? 'copied' : ''}`}
               onClick={handleCopy}

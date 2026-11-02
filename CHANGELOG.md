@@ -8,16 +8,85 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-### Planned (Phase 1: LM Studio & Basic Voice Integration)
-* Implement LM Studio client service supporting OpenAI-compatible streaming endpoints with configurable context lengths.
-* Implement Server-Sent Events (SSE) streaming endpoint `/api/chat/stream`.
-* Implement generation cancellation endpoint `/api/chat/abort`.
-* Implement unified conversation orchestrator managing shared conversation history for both text and voice.
-* Implement Push-to-Talk audio recording via Web Audio API / `MediaRecorder` with zero audio persistence.
-* Implement transient Speech-to-Text (STT) adapter evaluating `faster-whisper` and `whisper.cpp` candidates.
-* Implement streaming sentence-chunked Text-to-Speech (TTS) adapter evaluating `Piper` and `Kokoro` candidates.
-* Implement frontend audio playback with immediate stop/interruption controls and buffer flushing.
-* Implement UI toggle between Text-Only Mode and Voice Mode on the shared conversation thread.
+### Planned (Phase 2: Persistent Memory & SQLite Storage)
+* Integrate SQLite schema (`conversations`, `messages`, `memories`, `settings`) into the Express backend.
+* Implement session persistence and conversation management APIs.
+* Implement conversation sidebar synchronization with SQLite storage.
+* Implement working context window truncation and summarization.
+
+---
+
+## [0.1.0-alpha.6] - 2026-11-03
+
+### Added (Phase 1.6.1: Voice Quality Stabilization & Hinglish Benchmarking)
+* **Comparative STT Benchmarking Suite:**
+  * Implemented `HinglishBenchmarkRunner` in `voice-service/benchmark_engine.py` comparing `faster-whisper-small` vs `faster-whisper-base` on CPU INT8 using 4 threads.
+  * Standardized 15 test items across 4 critical categories: English, Hindi, Romanized Hinglish, and Technical Hinglish.
+  * Measures Word Error Rate (WER) via normalized Levenshtein distance, latency, Real-Time Factor (RTF), detected language probability, and technical vocabulary retention.
+  * Created CLI runner `voice-service/benchmark_hinglish.py` with `--summary`, `--run-synthetic`, and `--clear` commands.
+  * Added REST API endpoints on both Python microservice and Express gateway (`/api/voice/benchmark/prompts`, `/compare`, `/save`, `/history`).
+* **Interactive Browser-Based Benchmark UI:**
+  * Added `HinglishBenchmarkModal.jsx` in the React frontend (`client/src/components/chat/`).
+  * Allows users to record genuine human microphone audio through their browser across categories or custom reference sentences.
+  * Displays side-by-side comparison cards for `small` vs `base` showing outputs, WER percentages, latency, RTF, and technical term retention.
+  * Provides in-browser audio playback of the recorded microphone sample and local dataset persistence.
+* **Transcription Review & Edit Workflow:**
+  * Fixed auto-submission behavior: Push-to-Talk now places transcribed text directly into the message composer input by default so users can review and edit before sending.
+  * Added transcription draft banner displaying detected language code and confidence percentage with "Send Message" and "Clear" actions.
+  * Added mode toggle button in composer footer: "Review Before Send" vs "Auto-Send ON" for flexible user preference.
+* **Acoustic & Language Handling Stabilization:**
+  * Identified root causes of previous phonetic corruption: synthetic TTS audio loopback from Kokoro caused espeak-ng phonetic boundary clicks ("In Majha...", "In Mudgee...").
+  * Upgraded Whisper conditioning with a natural bilingual initial prompt (`"Namaste! Ye ek Hinglish conversation hai with technical terms..."`), grounding token decodings in Roman Hinglish vocabulary.
+  * Enabled `hotwords` parameter in faster-whisper to boost software terminology (`React`, `API`, `database`, `Java`, `Python`, `Express`, `NullPointerException`, `component`, `endpoint`, `linked list`).
+  * Configured VAD parameters with `speech_pad_ms: 200` to prevent clipping initial or trailing syllables.
+* **Kokoro TTS Hinglish Phonetic Routing:**
+  * Resolved espeak-ng pronunciation distortion on Roman letters: Devanagari text routes to `lang="hi"` and native Hindi voices (`hf_alpha`), while Roman script routes through Latin phonemizer (`lang="en-us"`) ensuring smooth continuous speech without robotic letter-spelling artifacts.
+* **Privacy & Local Storage:**
+  * All benchmark audio recordings and dataset JSON files are saved strictly in `voice-service/benchmark_data/` and excluded in `.gitignore` to prevent any personal audio from being tracked or uploaded.
+
+---
+
+## [0.1.0-alpha.5] - 2026-11-03
+
+### Added (Phase 1.6: Local Voice Assistant with Hinglish Support)
+* **Local Python Voice Service (`voice-service/`):**
+  * Created lightweight FastAPI service hosted on `127.0.0.1:8008` (loopback only) decoupling voice compute from Node.js Express.
+  * Packaged `faster-whisper` (v1.2.1) with CTranslate2 and pinned PyAV (`av<18.0.0`) for CPU-optimized multilingual speech recognition.
+  * Packaged `kokoro-onnx` (v0.6.1) with 54 voices and `espeakng-loader` for local neural speech synthesis on Windows.
+  * Implemented non-blocking background model loading in FastAPI lifespan to keep health checks responsive in <200ms.
+* **Multilingual Speech-to-Text (STT):**
+  * Configurable model (`small` or `base`), INT8 compute type, and 4 CPU threads.
+  * Voice Activity Detection (VAD) filter enabled to eliminate leading/trailing silence.
+  * Multilingual auto-detection supporting Hindi, English, and mixed Roman/Devanagari Hinglish code-switching.
+  * Preserved technical terms (React, Java, API, database, linked list, NullPointerException, debugging).
+* **Language-Aware Text-to-Speech (TTS):**
+  * Language-aware text preparation: identifies Hindi and English tokens, preserves English technical terms, and selects optimal language pipelines (`hi` vs `en-us`).
+  * Default Hindi voice `hf_alpha` with graceful fallback to `af_heart`.
+  * Clean markdown stripping and sentence chunking along punctuation boundaries (`.`, `!`, `?`, `\n`) to prevent mid-phrase audio cutoffs.
+* **Express Voice API Gateway (`server/`):**
+  * `POST /api/voice/transcribe`: accepts multipart audio uploads (`audio/wav`, `audio/webm`, `audio/ogg`), validates sizes (up to 25MB), transcribes via faster-whisper, and returns text and detected language metadata.
+  * `POST /api/voice/synthesize`: accepts text payloads, synthesizes audio locally via Kokoro, and streams WAV buffers.
+  * `GET /api/voice/health`: reports independent STT and TTS readiness.
+  * `GET /api/voice/voices`: returns 54 available voice profiles.
+  * Upgraded decoupled `GET /api/health` to dynamically report live health for LM Studio, faster-whisper STT, and Kokoro TTS without blocking server uptime.
+* **React Voice Interface (`client/`):**
+  * Push-to-Talk microphone button with animated recording waveform and glowing ring.
+  * Real-time status banners for `listening`, `transcribing`, `speaking`, and dismissible error alerts (e.g. microphone permission denied).
+  * Auto-speak **Voice Mode** toggle pill in header, persisting state across sessions.
+  * Inline **Speak / Stop** buttons on assistant message bubbles with playing animation.
+  * Immediate audio interruption: stops `Audio` playback, clears buffers, and aborts in-flight synthesis when user presses Stop, begins recording, or switches conversations.
+  * Dynamic diagnostic modal surfacing live STT and TTS candidate engine metrics.
+* **Privacy & Transient Audio Policy:**
+  * Raw microphone audio is held strictly in temporary memory during transcription and immediately deleted after processing. No audio files are persisted to disk.
+
+### Verified & Benchmarked
+* Verified all 5 canonical Hinglish test sentences through Kokoro TTS and faster-whisper STT.
+* Measured synthesis RTF: all sentences generated in 0.53x–0.82x Real-Time Factor on Intel i5 CPU.
+* Verified English-only and pure Devanagari Hindi edge cases with >95% language detection confidence.
+* Verified 100% CPU/VRAM decoupling: STT/TTS runs on CPU, preserving 100% of NVIDIA RTX 3050 Laptop GPU VRAM for Gemma 4 in LM Studio.
+* Verified existing chat streaming, abort mechanics, Google OAuth, and localStorage persistence remain intact.
+
+---
 
 ---
 

@@ -2,19 +2,20 @@
 
 This document outlines the six planned phases for developing **Ruan AI**. Each phase builds incrementally on previous stable milestones.
 
-> **Current Project Status (as of 2026-11-01 — v0.1.0-alpha.4):**
-> **Phase 1 LM Studio & Streaming Integration Complete.** React + Vite frontend, Node.js + Express backend (ES Modules), LM Studio streaming (`POST /api/chat/stream`), reasoning token suppression, generation abort (`POST /api/chat/abort`), and decoupled health checks (`/api/health`) are active and verified with **Gemma 4 E2B IT QAT** (`gemma-4-e2b-it-qat`). LM Studio must have the matching model loaded and its local API server running on `http://localhost:1234/v1`. Phase 1.5 conversation interface is fully implemented.
+> **Current Project Status (as of 2026-11-03 — v0.1.0-alpha.5):**
+> **Phase 1.6 Local Voice Assistant with Hinglish Support Complete.** React + Vite frontend, Node.js + Express backend (ES Modules), LM Studio streaming (`POST /api/chat/stream`) with **Gemma 4 E2B IT QAT**, Python local voice service (`voice-service/`) hosting **faster-whisper** (STT) and **Kokoro 82M** (TTS), Push-to-Talk audio recording, instant playback interruption, and auto-speaking Voice Mode are fully active and benchmarked on Windows 11 CPU.
 
 ---
 
 ## Roadmap Overview
 
 ```text
-Phase 1: Core Foundation + Basic Voice Assistant (Foundation Done / AI In Progress)
+Phase 1: Core Foundation + Voice Assistant (Phase 1.6 Complete)
   ├── [x] Client (React + Vite), Server (Express), Decoupled Health Check
-  └── [ ] LM Studio Streaming, Push-to-Talk, Candidate STT & TTS, Audio Controls
+  ├── [x] LM Studio Streaming (Gemma 4), Push-to-Talk, Cancellation
+  └── [x] faster-whisper STT, Kokoro 82M TTS, Hinglish Support, Voice Controls
       ▼
-Phase 2: Persistent Memory
+Phase 2: Persistent Memory (Upcoming)
   └── SQLite persistence, Session history, Long-term memory retrieval
       ▼
 Phase 3: Agentic Intelligence and LangGraph
@@ -61,13 +62,21 @@ Phase 6: Advanced Voice and Autonomous Capabilities
 * [x] Implement safe React-based Markdown rendering and syntax-highlighted code blocks with copy buttons.
 * [x] Implement in-memory conversation search, conversation switching, and robust `localStorage` persistence.
 * [x] Implement Google Authentication & User Profile Management (Google Identity Services, server-side ID token verification with `google-auth-library`, persistent SQLite session storage in `ruan_auth.db`, and polished account dropdown).
-* [ ] Build frontend Push-to-Talk recording service (`useAudioRecorder`).
-* [ ] Implement transient STT transcription endpoint (`/api/voice/transcribe`) evaluating `faster-whisper` vs `whisper.cpp`.
-* [ ] Implement streaming sentence-chunked TTS adapter (`ttsService.js`) evaluating `Piper` vs `Kokoro`.
-* [ ] Build frontend audio playback manager with instant interrupt/stop controls (`useAudioPlayer`).
-* [ ] Build UI toggle between Text-Only Mode and Voice Mode on the shared conversation thread.
+* [x] Build frontend Push-to-Talk recording service (`useVoice`).
+* [x] Implement transient STT transcription endpoint (`/api/voice/transcribe`) evaluating `faster-whisper`.
+* [x] Implement neural TTS adapter (`ttsService.js`) evaluating `Kokoro 82M` with language-aware Hinglish preparation.
+* [x] Build frontend audio playback manager with instant interrupt/stop controls (`useVoice`).
+* [x] Build UI toggle between Text-Only Mode and Voice Mode on the shared conversation thread.
+* [x] **Phase 1.6.1 Voice Quality Stabilization & Hinglish Benchmarking:**
+  * [x] Comprehensive root-cause audit of synthetic loopback bias and language detection boundaries.
+  * [x] Comparative benchmark suite between `faster-whisper-small` and `faster-whisper-base` across 4 categories (English, Hindi, Romanized Hinglish, Technical Hinglish).
+  * [x] Interactive browser-based microphone benchmark harness with side-by-side WER, latency, RTF, and technical term retention.
+  * [x] Review & Edit before send workflow in message composer to eliminate unintentional garbled submissions.
+  * [x] Refined bilingual Hinglish initial prompt conditioning and technical vocabulary boosting via `hotwords`.
+  * [x] Language-aware Kokoro TTS routing to prevent espeak-ng phonetic distortion on Romanized text.
+  * [x] Standalone CLI benchmark harness (`voice-service/benchmark_hinglish.py`).
 
-**Delivery Criteria:** A user can type or hold push-to-talk to speak a prompt, have it transcribed locally, generate a streamed text response via LM Studio, hear the response spoken aloud locally via TTS sentence chunks, interrupt playback at will, or toggle into silent text-only mode—all within a shared conversation history.
+**Delivery Criteria:** A user can type or hold push-to-talk to speak a prompt in English, Hindi, or Hinglish, review and edit the transcribed text before submitting, benchmark speech models side-by-side, hear the streamed response spoken aloud locally via TTS sentence chunks, interrupt playback at will, or toggle into silent text-only mode—all within a shared conversation history.
 
 ---
 

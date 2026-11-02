@@ -76,11 +76,15 @@ server/
 
 ## Current Status
 
-* **Status:** Phase 1 & Phase 1.5 Implemented (`v0.1.0-alpha.4`).
+* **Status:** Phase 1.6 Implemented (`v0.1.0-alpha.5`).
 * **Active Components:**
   * Express.js HTTP/SSE server running on `http://127.0.0.1:5000` with CORS, error-handling middleware, and structured logging.
-  * Decoupled health reporting (`GET /api/health`) dynamically detecting LM Studio readiness and loaded models (default model: `gemma-4-e2b-it-qat`).
-  * Real-time streaming gateway (`POST /api/chat/stream`) with Server-Sent Events, token buffering, and model reasoning suppression.
+  * Decoupled health reporting (`GET /api/health`) dynamically detecting LM Studio readiness and independent health of STT (`faster-whisper`) and TTS (`kokoro`).
+  * Real-time streaming gateway (`POST /api/chat/stream`) with Server-Sent Events, token buffering, and model reasoning suppression (Gemma 4).
   * In-flight generation cancellation registry (`POST /api/chat/abort`) with AbortController lifecycle management.
+  * Voice API Gateway:
+    * `POST /api/voice/transcribe` — multipart audio upload, faster-whisper transcription with multilingual & Hinglish support.
+    * `POST /api/voice/synthesize` — speech synthesis via Kokoro 82M with sentence chunking and interruption.
+    * `GET /api/voice/health` & `GET /api/voice/voices` — engine readiness and available voice profiles.
   * Native fetch connector (`lmStudioService.js`) targeting local LM Studio on port 1234 (configured for Gemma 4 E2B IT QAT).
-* **Next Milestone:** Basic Voice Assistant integration (transient STT endpoint `/api/voice/transcribe` evaluating `faster-whisper` vs `whisper.cpp`, and streaming sentence-chunked TTS adapter `/api/voice/synthesize` evaluating `Piper` vs `Kokoro`).
+* **Next Milestone:** Phase 2: Persistent Memory & Context Window Management with SQLite.

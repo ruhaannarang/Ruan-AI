@@ -8,9 +8,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Status-Phase%201.5%20Active-8B5CF6?style=flat-square" alt="Status" />
+  <img src="https://img.shields.io/badge/Status-Phase%201.6.1%20Active-8B5CF6?style=flat-square" alt="Status" />
   <img src="https://img.shields.io/badge/Architecture-Local--First-10B981?style=flat-square" alt="Local First" />
   <img src="https://img.shields.io/badge/LM%20Studio-Connected-6366F1?style=flat-square" alt="LM Studio" />
+  <img src="https://img.shields.io/badge/Voice-faster--whisper%20%2B%20Kokoro-EC4899?style=flat-square" alt="Voice" />
+  <img src="https://img.shields.io/badge/Benchmark-Hinglish%20Suite-3B82F6?style=flat-square" alt="Benchmark" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=flat-square" alt="License" />
 </p>
 
@@ -98,37 +100,29 @@
 | Endpoint | Method | Responsibility |
 |---|---|---|
 | `/api/health` | `GET` | Decoupled health check: server status + independent readiness of LM Studio, STT, and TTS |
-| `/api/chat/stream` | `POST` | Primary conversation endpoint; streams response tokens via SSE (and coordinates voice synthesis) |
+| `/api/chat/stream` | `POST` | Primary conversation endpoint; streams response tokens via SSE |
 | `/api/chat/abort` | `POST` | Immediately aborts active LLM generation and cancels in-flight TTS synthesis |
 | `/api/auth/config` | `GET` | Returns public Google OAuth client configuration (`googleClientId`, `isConfigured`) |
 | `/api/auth/google` | `POST` | Verifies incoming Google ID token with Google, upserts local SQLite user identity, and issues secure HttpOnly session cookie |
 | `/api/auth/me` | `GET` | Returns authenticated profile (`sub`, `name`, `email`, `picture`, `createdAt`) from valid session cookie |
 | `/api/auth/logout` | `POST` | Invalidates session in SQLite database and clears session cookie |
-| `/api/voice/transcribe` | `POST` | STT endpoint: receives audio blob, returns transcribed text string, discards raw audio |
-| `/api/voice/synthesize` | `POST` | TTS endpoint: receives text string, returns synthesized audio buffer |
-
----
-
-## Development Phases
-
-* **Phase 1: Core Foundation + Basic Voice Assistant** — Monorepo setup, Express backend, LM Studio connection, React frontend, streaming chat, microphone input with push-to-talk, candidate local STT transcription, candidate local TTS speech synthesis, audio playback controls (instant interrupt), text/voice mode switching, and decoupled health reporting.
-* **Phase 2: Persistent Memory** — SQLite schema, conversation persistence, short-term session buffer, and long-term memory retrieval.
-* **Phase 3: Agentic Intelligence and LangGraph** — LangGraph.js integration, structured tool calling, reasoning loops, and multi-step execution.
-* **Phase 4: Computer Interaction** — Safe local file search, document reading, application launcher, and permission confirmation middleware.
-* **Phase 5: Desktop Application & Background Voice Access** — Electron packaging, system tray minimizing, global shortcut activation, background voice access, and desktop notifications.
-* **Phase 6: Advanced Voice and Autonomous Capabilities** — Wake-word detection ("Hey Ruan"), continuous voice conversation, custom assistant personas, and autonomous workflows.
+| `/api/voice/transcribe` | `POST` | STT endpoint: receives audio blob, transcribes locally via faster-whisper with Hinglish detection, discards raw audio |
+| `/api/voice/synthesize` | `POST` | TTS endpoint: receives text string, synthesizes neural audio via Kokoro 82M with sentence chunking |
+| `/api/voice/health` | `GET` | Reports independent STT and TTS readiness from local Python voice service |
+| `/api/voice/voices` | `GET` | Returns list of available Kokoro voice profiles (54 local voices) |
 
 ---
 
 ## Current Project Status
 
-* **Status:** Phase 1 Foundation & Phase 1.5 Conversation Interface Implemented (`v0.1.0-alpha.4`).
+* **Status:** Phase 1.6 Local Voice Assistant with Hinglish Support Implemented (`v0.1.0-alpha.5`).
 * **Active Functionality:**
-  * **Frontend (`client/`):** React + Vite SPA with zero-framework Vanilla CSS styling, public landing page (`/`), dedicated desktop-style conversation interface (`/app`), explicit route resolution with 404 fallback, multi-turn chat history, safe markdown rendering, syntax-highlighted code blocks with copy buttons, in-memory conversation search, and robust `localStorage` persistence.
-  * **Backend (`server/`):** Node.js + Express backend with decoupled `/api/health` diagnostics, LM Studio streaming gateway (`POST /api/chat/stream`), model reasoning token suppression, and generation cancellation (`POST /api/chat/abort`).
+  * **Frontend (`client/`):** React + Vite SPA with zero-framework Vanilla CSS styling, public landing page (`/`), dedicated desktop-style conversation interface (`/app`), explicit route resolution with 404 fallback, multi-turn chat history, safe markdown rendering, syntax-highlighted code blocks with copy buttons, in-memory conversation search, robust `localStorage` persistence, Push-to-Talk recording (`useVoice`), auto-speaking **Voice Mode** toggle, and per-message Speak/Stop audio controls.
+  * **Backend (`server/`):** Node.js + Express backend with decoupled `/api/health` diagnostics, LM Studio streaming gateway (`POST /api/chat/stream`), model reasoning token suppression, generation cancellation (`POST /api/chat/abort`), and voice API gateway (`/api/voice/transcribe`, `/api/voice/synthesize`, `/api/voice/health`, `/api/voice/voices`).
+  * **Local Voice Service (`voice-service/`):** Standalone Python FastAPI microservice on `127.0.0.1:8008` hosting `faster-whisper` (multilingual STT with auto language detection, VAD, INT8 CPU optimization) and `Kokoro 82M` (neural TTS with 54 voices and language-aware Hinglish code-switching routing).
   * **Authentication & Identity System:** Google Identity Services integration with server-side ID token verification using official `google-auth-library`, persistent SQLite session storage (`ruan_auth.db`), HttpOnly cookies, fallback avatars, and polished account management dropdown without cloud synchronization.
   * **Local AI Runtime:** LM Studio connected via OpenAI-compatible endpoints with locally loaded **Gemma 4 E2B IT QAT** (`gemma-4-e2b-it-qat`) model. (LM Studio must have the matching model loaded and its local API server running on `http://localhost:1234/v1`).
-* **Next Development Milestone:** Basic Voice Assistant integration (Push-to-Talk audio recording via Web Audio API / `MediaRecorder`, local STT evaluation of `faster-whisper` vs `whisper.cpp`, and local streaming TTS evaluation of `Piper` vs `Kokoro`). SQLite persistence, LangGraph agent workflows, and computer interaction remain scheduled for subsequent phases.
+* **Next Development Milestone:** Phase 2: Persistent Memory & Context Window Management with SQLite.
 
 ---
 

@@ -5,8 +5,10 @@ import './ChatLayout.css';
 
 export default function ChatLayout({
   chatState,
+  voiceState,
   navigateTo,
-  onOpenDiagnostics
+  onOpenDiagnostics,
+  onOpenBenchmark
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -41,11 +43,13 @@ export default function ChatLayout({
       <ChatWindow
         activeConversation={activeConversation}
         isGenerating={isGenerating}
+        voiceState={voiceState}
         onSendMessage={sendMessage}
         onStopGeneration={stopGeneration}
         onCreateNewChat={createNewChat}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         onOpenDiagnostics={onOpenDiagnostics}
+        onOpenBenchmark={onOpenBenchmark}
       />
     </div>
   );

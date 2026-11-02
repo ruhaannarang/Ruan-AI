@@ -5,6 +5,7 @@ import { config } from './config/index.js';
 import healthRoutes from './routes/healthRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import voiceRoutes from './routes/voiceRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -35,6 +36,7 @@ if (config.nodeEnv === 'development') {
 app.use('/api/health', healthRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/voice', voiceRoutes);
 
 // Fallback 404 handler
 app.use((req, res) => {
@@ -57,4 +59,5 @@ const server = app.listen(config.port, config.host, () => {
   console.log(`[Ruan-Server] Health check: http://${config.host}:${config.port}/api/health`);
 });
 
+export { server };
 export default app;

@@ -8,11 +8,13 @@ import './ChatWindow.css';
 export default function ChatWindow({
   activeConversation,
   isGenerating,
+  voiceState,
   onSendMessage,
   onStopGeneration,
   onCreateNewChat,
   onToggleSidebar,
-  onOpenDiagnostics
+  onOpenDiagnostics,
+  onOpenBenchmark
 }) {
   const messages = activeConversation?.messages || [];
   const title = activeConversation?.title || 'New Chat';
@@ -45,8 +47,39 @@ export default function ChatWindow({
         </div>
 
         <div className="header-right">
+          {/* Voice Mode Toggle Button */}
+          {voiceState && (
+            <button
+              className={`voice-mode-toggle-btn font-mono ${voiceState.isVoiceMode ? 'active' : ''}`}
+              onClick={voiceState.toggleVoiceMode}
+              type="button"
+              title={voiceState.isVoiceMode ? 'Voice Mode Active: Assistant auto-speaks responses. Click to disable.' : 'Voice Mode Inactive: Click to enable auto-spoken responses.'}
+              aria-label="Toggle auto voice response mode"
+              aria-pressed={voiceState.isVoiceMode}
+            >
+              <svg className="voice-mode-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M11.55 1.45a.75.75 0 011.06 0 9 9 0 010 12.73.75.75 0 11-1.06-1.06 7.5 7.5 0 000-10.61.75.75 0 010-1.06zM9.07 3.93a.75.75 0 011.06 0 5.5 5.5 0 010 7.78.75.75 0 11-1.06-1.06 4 4 0 000-5.66.75.75 0 010-1.06z" />
+                <path d="M7 3.25v9.5a.75.75 0 01-1.28.53L3.18 10.75H1.5A1.5 1.5 0 010 9.25v-2.5A1.5 1.5 0 011.5 5.25h1.68l2.54-2.53A.75.75 0 017 3.25z" />
+              </svg>
+              <span className="voice-mode-label">{voiceState.isVoiceMode ? 'Voice Mode' : 'Voice Off'}</span>
+            </button>
+          )}
+
           {/* Model Status Pill & Popover */}
           <ModelStatus onOpenDiagnostics={onOpenDiagnostics} />
+
+          {/* Voice & Hinglish Benchmark Button */}
+          {onOpenBenchmark && (
+            <button
+              className="header-benchmark-btn font-mono"
+              onClick={onOpenBenchmark}
+              type="button"
+              title="Open Hinglish & Multilingual Voice Benchmark (Phase 1.6.1)"
+              aria-label="Open voice benchmark"
+            >
+              🎙️ Benchmark
+            </button>
+          )}
 
           {/* Quick New Chat Button */}
           <button
@@ -71,6 +104,7 @@ export default function ChatWindow({
         <MessageList
           messages={messages}
           isGenerating={isGenerating}
+          voiceState={voiceState}
         />
       </div>
 
@@ -80,6 +114,7 @@ export default function ChatWindow({
           onSendMessage={onSendMessage}
           onStopGeneration={onStopGeneration}
           isGenerating={isGenerating}
+          voiceState={voiceState}
         />
       </footer>
     </main>
