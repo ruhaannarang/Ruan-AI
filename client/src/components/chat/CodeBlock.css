@@ -1,10 +1,14 @@
 .ruan-code-block {
   margin: 14px 0;
-  border-radius: var(--radius-md);
-  background: #0d101a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--leaf-s);
+  background: #0c0f19;
+  border: 1px solid var(--line2);
   overflow: hidden;
-  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.6);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .code-header {
@@ -12,16 +16,17 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(244, 244, 245, 0.03);
+  border-bottom: 1px solid var(--line);
 }
 
 .code-lang-badge {
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: #C4B5FD;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
 .code-copy-btn {
@@ -29,19 +34,23 @@
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border-radius: var(--radius-xs);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--leaf-xs);
+  background: rgba(244, 244, 245, 0.04);
+  border: 1px solid var(--line2);
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 500;
-  transition: all 0.15s ease;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
 }
 
 .code-copy-btn:hover {
-  background: rgba(255, 255, 255, 0.09);
-  color: var(--text-primary);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(244, 244, 245, 0.08);
+  color: #F4F4F5;
+  border-color: rgba(244, 244, 245, 0.28);
 }
 
 .code-copy-btn.copied {
@@ -62,6 +71,11 @@
 .code-content-wrapper {
   overflow-x: auto;
   padding: 12px 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
 
 .code-pre {

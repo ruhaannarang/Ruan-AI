@@ -6,7 +6,8 @@ import './MessageList.css';
 export default function MessageList({
   messages,
   isGenerating,
-  voiceState
+  voiceState,
+  onSendMessage
 }) {
   const containerRef = useRef(null);
   const bottomAnchorRef = useRef(null);
@@ -45,7 +46,7 @@ export default function MessageList({
   if (!messages || messages.length === 0) {
     return (
       <div className="message-list-empty-wrapper">
-        <WelcomeScreen />
+        <WelcomeScreen onSelectPrompt={onSendMessage} />
       </div>
     );
   }

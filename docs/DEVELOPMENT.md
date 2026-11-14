@@ -181,8 +181,8 @@ SESSION_MAX_AGE_MS=604800000
 
 ### Standardized API Endpoints
 * `GET /api/health`: Decoupled server health check reporting server uptime and independent status of LM Studio, STT, and TTS.
-* `POST /api/chat/stream`: Core chat stream handling SSE token delivery.
-* `POST /api/chat/abort`: Cancels active generation and stops pending TTS synthesis.
+* `POST /api/chat/stream`: Core chat stream handling SSE token delivery (`event: token`), thinking status (`event: status`), and low-latency streaming TTS audio delivery (`event: audio`, `event: audio_done`, `event: audio_error`). Accepts `voice: true` and `voiceOptions`.
+* `POST /api/chat/abort`: Cancels active generation, terminates LM Studio stream, and cancels in-progress TTS synthesis immediately by `requestId`.
 * `GET /api/auth/config`: Returns public Google Identity Services configuration (`googleClientId`, `isConfigured`).
 * `POST /api/auth/google`: Verifies incoming Google ID token with Google, upserts local SQLite user identity, and issues secure HttpOnly session cookie.
 * `GET /api/auth/me`: Returns authenticated profile (`sub`, `name`, `email`, `picture`, `createdAt`) from valid session cookie.
@@ -206,4 +206,11 @@ SESSION_MAX_AGE_MS=604800000
 4. **Decoupled Diagnostics:** Verify that `/api/health` returns `200 OK` even if LM Studio or voice candidates are uninitialized, accurately reflecting their individual states in the JSON payload.
 5. **Playback Interruption:** Test that triggering Push-to-Talk, clicking Stop, or entering a new prompt immediately aborts audio playback and cancels backend processing via `/api/chat/abort`.
 6. **Hinglish Benchmarking:** Test speech recognition across models using the in-app benchmark modal (`🎙️ Benchmark` in the top header) or the CLI runner (`python voice-service/benchmark_hinglish.py --summary`).
-7. **Clean Commits:** Run code formatting checks and verify clean syntax before committing changes. All benchmark audio and personal recordings must remain strictly local and gitignored.
+7. **Streaming TTS Verification:** Verify sentence splitting, backend synthesis coordination, and gapless audio queuing via:
+   ```powershell
+   node server/test_sentence_buffer.js
+   node server/test_streaming_tts.js
+   node client/test_audio_queue_player.js
+   voice-service\.venv\Scripts\python.exe voice-service/benchmark_streaming_tts.py
+   ```
+8. **Clean Commits:** Run code formatting checks and verify clean syntax before committing changes. All benchmark audio and personal recordings must remain strictly local and gitignored.

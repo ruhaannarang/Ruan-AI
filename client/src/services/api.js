@@ -77,7 +77,13 @@ export async function checkHealth(signal) {
  * @param {string} [options.requestId] - Optional request ID tracking
  * @param {AbortSignal} [options.signal] - Optional AbortSignal to cancel from client
  * @param {(status: 'thinking'|'generating', message: string, data: Object) => void} [options.onStatus] - Callback for status updates
+ * @param {boolean} [options.voice] - Whether to enable streaming voice synthesis
+ * @param {Object} [options.voiceOptions] - Voice configuration options (voice, speed, lang)
+ * @param {(chunk: { requestId: string, chunkIndex: number, text: string, audio: string, mimeType: string, isLast: boolean, metrics: Object }) => void} [options.onAudioChunk] - Callback for streaming audio chunk
+ * @param {(data: { requestId: string, totalChunks: number, metrics: Object }) => void} [options.onAudioDone] - Callback when audio generation finishes
+ * @param {(err: { requestId: string, chunkIndex: number, error: string, fatal: boolean }) => void} [options.onAudioError] - Callback on audio chunk error
  * @param {(token: string, data: Object) => void} [options.onToken] - Callback for each streamed user-facing content token
+ * @param {(data: { requestId: string, model: string, finish_reason: string, totalTokens: number }) => void} [options.onTextDone] - Callback when text tokens finish
  * @param {(data: { requestId: string, model: string, finish_reason: string, totalTokens: number }) => void} [options.onDone] - Callback when generation is complete
  * @param {(error: { message: string, code: string, details?: any }) => void} [options.onError] - Callback on structured error
  * @returns {Promise<{ requestId: string, aborted: boolean, error?: Object }>}
@@ -87,20 +93,32 @@ export async function streamChat({
   temperature,
   maxTokens,
   requestId,
+  voice,
+  voiceOptions,
   signal,
   onStatus,
   onToken,
+  onTextDone,
   onDone,
-  onError
+  onError,
+  onAudioChunk,
+  onAudioDone,
+  onAudioError
 }) {
   const genRequestId = requestId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `req_${Date.now()}`);
 
   // Guaranteed single-invocation lifecycle guards
+  let hasDoneText = false;
   let hasTerminated = false;
 
   const safeOnToken = (token, data) => {
     if (hasTerminated || signal?.aborted) return;
     if (onToken) onToken(token, data);
+  };
+
+  const safeOnTextDone = (data) => {
+    if (hasTerminated || signal?.aborted) return;
+    if (onTextDone) onTextDone(data);
   };
 
   const safeOnStatus = (status, msg, data) => {
@@ -109,8 +127,8 @@ export async function streamChat({
   };
 
   const safeOnDone = (data) => {
-    if (hasTerminated || signal?.aborted) return;
-    hasTerminated = true;
+    if (hasDoneText || hasTerminated || signal?.aborted) return;
+    hasDoneText = true;
     if (onDone) onDone(data);
   };
 
@@ -118,6 +136,21 @@ export async function streamChat({
     if (hasTerminated || signal?.aborted) return;
     hasTerminated = true;
     if (onError) onError(err);
+  };
+
+  const safeOnAudioChunk = (chunk) => {
+    if (hasTerminated || signal?.aborted) return;
+    if (onAudioChunk) onAudioChunk(chunk);
+  };
+
+  const safeOnAudioDone = (data) => {
+    if (hasTerminated || signal?.aborted) return;
+    if (onAudioDone) onAudioDone(data);
+  };
+
+  const safeOnAudioError = (err) => {
+    if (hasTerminated || signal?.aborted) return;
+    if (onAudioError) onAudioError(err);
   };
 
   try {
@@ -131,7 +164,9 @@ export async function streamChat({
         messages,
         temperature,
         max_tokens: maxTokens,
-        requestId: genRequestId
+        requestId: genRequestId,
+        voice: voice === true,
+        voiceOptions
       }),
       signal
     });
@@ -194,10 +229,18 @@ export async function streamChat({
       try {
         const json = JSON.parse(rawData);
 
-        if (event === 'status' || json.status !== undefined) {
+        if (event === 'audio') {
+          safeOnAudioChunk(json);
+        } else if (event === 'audio_done') {
+          safeOnAudioDone(json);
+        } else if (event === 'audio_error') {
+          safeOnAudioError(json);
+        } else if (event === 'status' || json.status !== undefined) {
           safeOnStatus(json.status, json.message || 'Thinking...', json);
         } else if (event === 'token' || json.token !== undefined) {
           safeOnToken(json.token, json);
+        } else if (event === 'text_done') {
+          safeOnTextDone(json);
         } else if (event === 'done' || json.finish_reason !== undefined) {
           safeOnDone(json);
         } else if (event === 'error' || json.error) {
@@ -284,6 +327,7 @@ export async function streamChat({
         dispatchMessage(currentEvent, dataLines.join('\n'));
       }
     } finally {
+      hasTerminated = true;
       try {
         reader.releaseLock();
       } catch {

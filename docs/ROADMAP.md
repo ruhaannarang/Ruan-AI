@@ -2,18 +2,19 @@
 
 This document outlines the six planned phases for developing **Ruan AI**. Each phase builds incrementally on previous stable milestones.
 
-> **Current Project Status (as of 2026-11-03 — v0.1.0-alpha.5):**
-> **Phase 1.6 Local Voice Assistant with Hinglish Support Complete.** React + Vite frontend, Node.js + Express backend (ES Modules), LM Studio streaming (`POST /api/chat/stream`) with **Gemma 4 E2B IT QAT**, Python local voice service (`voice-service/`) hosting **faster-whisper** (STT) and **Kokoro 82M** (TTS), Push-to-Talk audio recording, instant playback interruption, and auto-speaking Voice Mode are fully active and benchmarked on Windows 11 CPU.
+> **Current Project Status (as of 2026-11-13 — v0.1.0-alpha.6):**
+> **Phase 1.7 Streaming Text-to-Speech Complete.** React + Vite frontend, Node.js + Express backend (ES Modules), LM Studio streaming (`POST /api/chat/stream`) with **Gemma 4 E2B IT QAT**, Python local voice service (`voice-service/`) hosting **faster-whisper** (STT) and **Kokoro 82M** (TTS), real-time sentence-level buffering (`SentenceBuffer`), bounded backend streaming TTS coordinator (`StreamingTTSCoordinator`), SSE audio chunk transport, gapless Web Audio API playback (`AudioQueuePlayer`), instant cancellation by request ID, and empirical Time to First Playback (TTFP) instrumentation (~540ms, >8x latency reduction) are fully operational.
 
 ---
 
 ## Roadmap Overview
 
 ```text
-Phase 1: Core Foundation + Voice Assistant (Phase 1.6 Complete)
+Phase 1: Core Foundation + Voice Assistant (Phase 1.7 Complete)
   ├── [x] Client (React + Vite), Server (Express), Decoupled Health Check
   ├── [x] LM Studio Streaming (Gemma 4), Push-to-Talk, Cancellation
-  └── [x] faster-whisper STT, Kokoro 82M TTS, Hinglish Support, Voice Controls
+  ├── [x] faster-whisper STT, Kokoro 82M TTS, Hinglish Support, Voice Controls
+  └── [x] Phase 1.7: Low-Latency Streaming TTS (Overlapping LLM + Kokoro)
       ▼
 Phase 2: Persistent Memory (Upcoming)
   └── SQLite persistence, Session history, Long-term memory retrieval
@@ -75,8 +76,16 @@ Phase 6: Advanced Voice and Autonomous Capabilities
   * [x] Refined bilingual Hinglish initial prompt conditioning and technical vocabulary boosting via `hotwords`.
   * [x] Language-aware Kokoro TTS routing to prevent espeak-ng phonetic distortion on Romanized text.
   * [x] Standalone CLI benchmark harness (`voice-service/benchmark_hinglish.py`).
+* [x] **Phase 1.7 Low-Latency Streaming Text-to-Speech:**
+  * [x] Regex-based sentence boundary segmenter (`SentenceBuffer`) with abbreviation whitelist (`Dr.`, `e.g.`, `vs.`), decimal protection (`3.14`), code/identifier guards (`index.js`), Devanagari danda support (`।`, `॥`), and phrase-level backpressure flushing (>180 chars).
+  * [x] Bounded sequential TTS coordinator (`StreamingTTSCoordinator`) on backend with overlapping LLM generation and Kokoro synthesis.
+  * [x] Server-Sent Events (SSE) `event: audio` transporting base64 WAV chunks and performance metrics directly in the chat stream.
+  * [x] Web Audio API ordered playback queue (`AudioQueuePlayer`) providing sample-accurate, gapless transitions between sentences.
+  * [x] Lifecycle & cancellation safety tied to unique `requestId` (aborts in-flight LLM and TTS tasks on Stop button, Escape, new message, or chat switch).
+  * [x] Empirical Time to First Audible Playback (TTFP) instrumentation exposed in UI banners and diagnostics.
+  * [x] Non-fatal TTS error isolation: text streaming is never blocked if audio synthesis fails.
 
-**Delivery Criteria:** A user can type or hold push-to-talk to speak a prompt in English, Hindi, or Hinglish, review and edit the transcribed text before submitting, benchmark speech models side-by-side, hear the streamed response spoken aloud locally via TTS sentence chunks, interrupt playback at will, or toggle into silent text-only mode—all within a shared conversation history.
+**Delivery Criteria:** A user can type or hold push-to-talk to speak a prompt in English, Hindi, or Hinglish, review and edit the transcribed text before submitting, benchmark speech models side-by-side, hear the streamed response spoken aloud locally via TTS sentence chunks starting in ~540ms (overlapping token generation), interrupt playback at will, or toggle into silent text-only mode—all within a shared conversation history.
 
 ---
 

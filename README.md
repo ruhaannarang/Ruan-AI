@@ -8,11 +8,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Status-Phase%201.6.1%20Active-8B5CF6?style=flat-square" alt="Status" />
+  <img src="https://img.shields.io/badge/Status-Phase%201.7%20Active%20(Streaming%20TTS)-8B5CF6?style=flat-square" alt="Status" />
   <img src="https://img.shields.io/badge/Architecture-Local--First-10B981?style=flat-square" alt="Local First" />
   <img src="https://img.shields.io/badge/LM%20Studio-Connected-6366F1?style=flat-square" alt="LM Studio" />
-  <img src="https://img.shields.io/badge/Voice-faster--whisper%20%2B%20Kokoro-EC4899?style=flat-square" alt="Voice" />
-  <img src="https://img.shields.io/badge/Benchmark-Hinglish%20Suite-3B82F6?style=flat-square" alt="Benchmark" />
+  <img src="https://img.shields.io/badge/Voice-Streaming%20Kokoro%20%2B%20faster--whisper-EC4899?style=flat-square" alt="Voice" />
+  <img src="https://img.shields.io/badge/TTFP-~540ms-10B981?style=flat-square" alt="TTFP" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=flat-square" alt="License" />
 </p>
 

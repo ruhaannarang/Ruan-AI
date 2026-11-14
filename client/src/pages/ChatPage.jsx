@@ -10,10 +10,25 @@ export default function ChatPage({ navigateTo, onOpenDiagnostics }) {
   const voiceStateRef = useRef(null);
 
   const chatState = useChat({
+    get isVoiceMode() {
+      return Boolean(voiceStateRef.current?.isVoiceMode);
+    },
+    onAudioChunk: (chunk) => {
+      voiceStateRef.current?.handleAudioChunk(chunk);
+    },
+    onAudioDone: (data) => {
+      console.log('[ChatPage] Streaming audio session completed:', data);
+    },
+    onAudioError: (err) => {
+      console.warn('[ChatPage] Streaming audio chunk error:', err);
+    },
     onGenerationDone: (msg) => {
-      // If Voice Mode is active, auto-speak assistant response
-      if (voiceStateRef.current?.isVoiceMode && msg.content) {
-        voiceStateRef.current.speakMessage(msg.id, msg.content);
+      // Fallback: ONLY if voice mode was active and ZERO streaming audio chunks were received
+      // (e.g. if the streaming TTS coordinator failed or voice microservice was offline)
+      const vs = voiceStateRef.current;
+      if (vs?.isVoiceMode && msg.content && vs.hasStreamingAudio && !vs.hasStreamingAudio()) {
+        console.log('[ChatPage] Zero streaming audio chunks received; falling back to full message synthesis');
+        vs.speakMessage(msg.id, msg.content);
       }
     },
     onStop: () => {

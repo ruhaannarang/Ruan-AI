@@ -2,19 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { checkHealth } from './services/api';
 
 // Components
-import LoadingScreen from './components/LoadingScreen';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import About from './components/About';
-import Capabilities from './components/Capabilities';
-import Architecture from './components/Architecture';
-import Privacy from './components/Privacy';
-import Documentation from './components/Documentation';
-import Roadmap from './components/Roadmap';
-import FinalCTA from './components/FinalCTA';
-import Footer from './components/Footer';
 import DiagnosticsModal from './components/DiagnosticsModal';
 import ChatPage from './pages/ChatPage';
+import LandingPage from './pages/LandingPage';
 
 import './styles/App.css';
 
@@ -51,18 +41,6 @@ export default function App() {
     return { type: 'home', path: '/' };
   });
 
-  const [isInitialized, setIsInitialized] = useState(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        const resolved = resolveRoute(window.location.pathname);
-        if (resolved.type === 'app') return true;
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const alreadyVisited = sessionStorage.getItem('ruan_initialized') === 'true';
-        return prefersReducedMotion || alreadyVisited;
-      }
-    } catch {}
-    return false;
-  });
   const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
 
   // Sync state with browser back/forward navigation
@@ -146,20 +124,6 @@ export default function App() {
     };
   }, [fetchHealth]);
 
-  const handleScrollToDocs = () => {
-    const el = document.getElementById('docs');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleScrollToCapabilities = () => {
-    const el = document.getElementById('capabilities');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <div className="ruan-app" id="ruan-app-root">
       {/* Route 1: /app (Dedicated Conversation Application) */}
@@ -170,60 +134,12 @@ export default function App() {
         />
       )}
 
-      {/* Route 2: / (Canonical Public Landing Page) */}
+      {/* Route 2: / (Canonical Public Landing Page with Cinematic Boot Sequence) */}
       {routeInfo.type === 'home' && (
-        <>
-          {/* Cinematic Animated Initialization Screen (Landing Page only) */}
-          {!isInitialized && (
-            <LoadingScreen onComplete={() => setIsInitialized(true)} />
-          )}
-
-          {/* Main Website Experience */}
-          <div className={`site-content ${isInitialized ? 'visible' : 'initial-hidden'}`}>
-            {/* Navigation */}
-            <Navbar 
-              onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
-              onLaunchApp={() => navigateTo('/app')}
-            />
-
-            <main id="main-content">
-              {/* Section 2: Hero */}
-              <Hero 
-                onExploreDocs={handleScrollToDocs}
-                onExploreCapabilities={handleScrollToCapabilities}
-                onLaunchApp={() => navigateTo('/app')}
-              />
-
-              {/* Section 3: About Ruan AI */}
-              <About />
-
-              {/* Section 4: Core Capabilities */}
-              <Capabilities />
-
-              {/* Section 5: Modular Architecture */}
-              <Architecture />
-
-              {/* Section 6: Privacy and Security */}
-              <Privacy />
-
-              {/* Section 7: Documentation */}
-              <Documentation />
-
-              {/* Section 8: Roadmap */}
-              <Roadmap />
-
-              {/* Section 9: Final CTA */}
-              <FinalCTA 
-                onExploreDocs={handleScrollToDocs}
-                onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
-                onLaunchApp={() => navigateTo('/app')}
-              />
-            </main>
-
-            {/* Section 10: Footer */}
-            <Footer onExploreDocs={handleScrollToDocs} />
-          </div>
-        </>
+        <LandingPage
+          navigateTo={navigateTo}
+          onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
+        />
       )}
 
       {/* Route 3: Deliberate 404 Fallback for Unrecognized Paths */}

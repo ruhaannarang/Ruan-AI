@@ -99,12 +99,19 @@ export default function ChatWindow({
         </div>
       </header>
 
+      {/* Session Metadata Bar (Matching Brand Theme) */}
+      <div className="chat-session-metadata-bar font-mono" aria-hidden="true">
+        <span className="session-left">SESSION · LOCAL MODEL</span>
+        <span className="session-right">{isGenerating ? 'GENERATING · STREAM' : 'READY · LOCAL GPU'}</span>
+      </div>
+
       {/* Main Messages Feed */}
       <div className="chat-window-body">
         <MessageList
           messages={messages}
           isGenerating={isGenerating}
           voiceState={voiceState}
+          onSendMessage={onSendMessage}
         />
       </div>
 

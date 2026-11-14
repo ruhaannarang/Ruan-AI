@@ -3,5 +3,8 @@
   height: 100vh;
   overflow: hidden;
   position: relative;
-  background-color: var(--bg-primary);
+  background-color: #090B12;
+  background-image: radial-gradient(ellipse 70% 40% at 50% -10%, rgba(139, 92, 246, 0.14), transparent 70%);
+  color: #F4F4F5;
+  font-family: var(--font-body);
 }

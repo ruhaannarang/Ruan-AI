@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { lmStudioService } from '../services/lmStudioService.js';
+import { StreamingTTSCoordinator } from '../services/voice/streamingTtsCoordinator.js';
 
 /**
  * Server-side registry of in-flight generation AbortControllers.
@@ -69,6 +70,14 @@ function validateChatPayload(body) {
     }
   }
 
+  if (body.voice !== undefined && typeof body.voice !== 'boolean') {
+    return { valid: false, error: "'voice' must be a boolean (true or false)" };
+  }
+
+  if (body.voiceOptions !== undefined && (typeof body.voiceOptions !== 'object' || body.voiceOptions === null)) {
+    return { valid: false, error: "'voiceOptions' must be an object" };
+  }
+
   return { valid: true };
 }
 
@@ -88,7 +97,7 @@ export async function streamChat(req, res, next) {
     });
   }
 
-  const { messages, temperature, max_tokens } = req.body;
+  const { messages, temperature, max_tokens, voice, voiceOptions } = req.body;
   const requestId = req.body.requestId && typeof req.body.requestId === 'string'
     ? req.body.requestId
     : crypto.randomUUID();
@@ -106,11 +115,23 @@ export async function streamChat(req, res, next) {
   let isThinking = false;
   let reader = null;
 
+  // Initialize Streaming TTS coordinator if voice mode requested
+  const ttsCoordinator = voice === true ? new StreamingTTSCoordinator({
+    requestId,
+    res,
+    voiceOptions,
+    signal: abortController.signal,
+    sendSSE
+  }) : null;
+
   // Handler for premature client disconnections
   const handleClientClose = () => {
     if (!res.writableEnded && !isCompletedNormally) {
       console.log(`[Chat-Stream] Client disconnected prematurely for request ${requestId}. Aborting upstream generation.`);
       abortController.abort('CLIENT_DISCONNECTED');
+    }
+    if (ttsCoordinator) {
+      ttsCoordinator.abort();
     }
     cleanup();
   };
@@ -118,6 +139,9 @@ export async function streamChat(req, res, next) {
   const cleanup = () => {
     activeGenerations.delete(requestId);
     res.removeListener('close', handleClientClose);
+    if (ttsCoordinator) {
+      ttsCoordinator.abort();
+    }
     if (reader) {
       try {
         reader.releaseLock();
@@ -177,13 +201,35 @@ export async function streamChat(req, res, next) {
         // Upstream SSE standard completion flag
         if (line === 'data: [DONE]') {
           isCompletedNormally = true;
+
+          // Notify client that text token streaming has finished
+          sendSSE(res, 'text_done', {
+            requestId,
+            model,
+            finish_reason: finishReason,
+            totalTokens: tokenCount
+          });
+
+          // In voice mode, wait for all pending audio chunks to finish synthesis and dispatch
+          if (ttsCoordinator) {
+            try {
+              await ttsCoordinator.finish();
+            } catch (ttsErr) {
+              console.warn(`[Chat-Stream] Error finishing TTS for req ${requestId}:`, ttsErr.message);
+            }
+          }
+
+          // Emit canonical completion event after both text and all audio chunks have been sent
           sendSSE(res, 'done', {
             requestId,
             model,
             finish_reason: finishReason,
             totalTokens: tokenCount
           });
-          res.end();
+
+          if (!res.writableEnded) {
+            res.end();
+          }
           cleanup();
           return;
         }
@@ -209,6 +255,9 @@ export async function streamChat(req, res, next) {
                 token: delta.content,
                 requestId
               });
+              if (ttsCoordinator) {
+                ttsCoordinator.feedToken(delta.content);
+              }
             } else if (delta?.reasoning_content) {
               // Internal model reasoning trace: Do NOT expose raw reasoning text.
               // Instead, notify the client with a clean 'Thinking...' status event.
@@ -228,9 +277,26 @@ export async function streamChat(req, res, next) {
       }
     }
 
-    // Process any remaining bytes in buffer
-    if (buffer.trim() === 'data: [DONE]') {
+    // Process completion if reader loop ended without data: [DONE]
+    if (!isCompletedNormally) {
       isCompletedNormally = true;
+
+      // Notify client that text token streaming has finished
+      sendSSE(res, 'text_done', {
+        requestId,
+        model,
+        finish_reason: finishReason,
+        totalTokens: tokenCount
+      });
+
+      if (ttsCoordinator) {
+        try {
+          await ttsCoordinator.finish();
+        } catch (ttsErr) {
+          console.warn(`[Chat-Stream] Error finishing TTS for req ${requestId}:`, ttsErr.message);
+        }
+      }
+
       sendSSE(res, 'done', {
         requestId,
         model,
@@ -239,7 +305,6 @@ export async function streamChat(req, res, next) {
       });
     }
 
-    isCompletedNormally = true;
     if (!res.writableEnded) {
       res.end();
     }

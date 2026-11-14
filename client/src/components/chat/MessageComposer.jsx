@@ -7,7 +7,7 @@ export default function MessageComposer({
   isGenerating,
   voiceState,
   disabled = false,
-  placeholder = 'Message Ruan AI... (Enter to send, Shift + Enter for newline)'
+  placeholder = 'Message Ruan…'
 }) {
   const [input, setInput] = useState('');
   const textareaRef = useRef(null);
@@ -181,6 +181,11 @@ export default function MessageComposer({
             <span className="bar b3"></span>
           </div>
           <span className="banner-text">Speaking response (Kokoro TTS)...</span>
+          {voiceState?.audioMetrics?.ttfpMs && (
+            <span className="ttfp-badge font-mono" title="Empirical Time to First Audible Playback">
+              TTFP: {voiceState.audioMetrics.ttfpMs}ms
+            </span>
+          )}
           <button
             type="button"
             className="btn-stop-audio font-mono"
@@ -238,7 +243,7 @@ export default function MessageComposer({
               </button>
             )}
 
-            {/* Stop Generation Button OR Send Button */}
+            {/* Stop Generation Button OR Send Button / Enter Kbd */}
             {isGenerating ? (
               <button
                 type="button"
@@ -250,11 +255,10 @@ export default function MessageComposer({
                 <div className="stop-square" aria-hidden="true"></div>
                 <span className="stop-label font-mono">STOP</span>
               </button>
-            ) : (
+            ) : canSend ? (
               <button
                 type="submit"
-                className={`composer-send-btn ${canSend ? 'active' : ''}`}
-                disabled={!canSend}
+                className="composer-send-btn active"
                 aria-label="Send message"
                 title="Send message (Enter)"
               >
@@ -262,6 +266,8 @@ export default function MessageComposer({
                   <path d="M15.854.146a.5.5 0 01.11.54l-5.8 14.5a.5.5 0 01-.928.008L6.47 9.53 1.096 6.764a.5.5 0 01.008-.928L15.604.036a.5.5 0 01.25.11zM6.75 8.75l2.25 2.25L13.75 3.5 6.75 8.75z" />
                 </svg>
               </button>
+            ) : (
+              <kbd className="composer-kbd font-mono" title="Press Enter to send">Enter</kbd>
             )}
           </div>
         </div>

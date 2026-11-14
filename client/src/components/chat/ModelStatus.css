@@ -7,19 +7,21 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 5px 12px;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 12px;
+  border-radius: var(--leaf-xs);
+  background: rgba(244, 244, 245, 0.04);
+  border: 1px solid var(--line2);
   color: var(--text-muted);
-  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
 
 .model-status-pill:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(244, 244, 245, 0.08);
+  border-color: rgba(244, 244, 245, 0.28);
   color: var(--text-primary);
 }
 
@@ -67,7 +69,11 @@
   top: calc(100% + 8px);
   right: 0;
   width: 290px;
-  background: #111522;
+  background: rgba(17, 21, 34, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--line2);
+  border-radius: var(--leaf-s);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
   box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.7);

@@ -3,6 +3,11 @@
   line-height: 1.7;
   color: var(--text-primary);
   word-break: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .ruan-markdown > *:first-child {

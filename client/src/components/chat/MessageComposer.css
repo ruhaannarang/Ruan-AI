@@ -1,38 +1,39 @@
 .ruan-composer-container {
   width: 100%;
-  max-width: 820px;
+  max-width: 860px;
   margin: 0 auto;
-  padding: 12px 20px 20px 20px;
+  padding: 12px 20px 24px 20px;
 }
 
 .composer-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .composer-input-wrapper {
   position: relative;
   display: flex;
   align-items: flex-end;
-  gap: 10px;
-  background: #111522;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-lg);
-  padding: 8px 12px 8px 16px;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 12px;
+  background: rgba(17, 21, 34, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--line2);
+  border-radius: var(--leaf-m);
+  padding: 10px 14px 10px 20px;
+  box-shadow: 0 14px 40px -15px rgba(0, 0, 0, 0.7);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .composer-input-wrapper:focus-within {
   border-color: var(--accent-violet);
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25), 0 12px 36px -8px rgba(0, 0, 0, 0.7);
-  background: #14192a;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25), 0 16px 45px -10px rgba(0, 0, 0, 0.8);
+  background: rgba(21, 26, 42, 0.95);
 }
 
 .composer-input-wrapper.generating {
   border-color: rgba(139, 92, 246, 0.3);
-  background: #0f121d;
+  background: rgba(15, 18, 29, 0.9);
 }
 
 .composer-textarea {
@@ -42,8 +43,8 @@
   outline: none;
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: 0.96rem;
+  line-height: 1.55;
   resize: none;
   min-height: 32px;
   max-height: 180px;
@@ -51,7 +52,7 @@
 }
 
 .composer-textarea::placeholder {
-  color: var(--text-dim);
+  color: var(--text-muted);
 }
 
 .composer-textarea:disabled {
@@ -70,12 +71,12 @@
 
 /* Mic Button */
 .composer-mic-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-dim);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--leaf-xs);
+  background: rgba(244, 244, 245, 0.04);
+  border: 1px solid var(--line2);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,10 +85,10 @@
 }
 
 .composer-mic-btn:hover:not(:disabled) {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.4);
-  color: var(--text-primary);
-  transform: scale(1.05);
+  background: rgba(139, 92, 246, 0.18);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #F4F4F5;
+  transform: translateY(-1px);
 }
 
 .composer-mic-btn.recording {
@@ -96,6 +97,29 @@
   color: #FFFFFF;
   box-shadow: 0 0 16px rgba(239, 68, 68, 0.6);
   animation: micPulse 1.5s infinite ease-in-out;
+}
+
+/* Enter Key Badge */
+.composer-kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  border: 1px solid var(--line2);
+  border-radius: var(--leaf-xs);
+  padding: 4px 10px;
+  background: rgba(244, 244, 245, 0.04);
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1px;
+  transition: all 0.2s ease;
+}
+
+.composer-kbd:hover {
+  border-color: rgba(244, 244, 245, 0.3);
+  color: var(--text-primary);
 }
 
 @keyframes micPulse {
@@ -291,6 +315,19 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+.ttfp-badge {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34D399;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
 /* Audio Wave Mini */
 .audio-wave-mini {
   display: flex;
@@ -317,29 +354,25 @@
 }
 
 .composer-send-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-dim);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--leaf-xs);
+  background: var(--accent-violet);
+  border: 1px solid var(--accent-violet);
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px -4px rgba(139, 92, 246, 0.7);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.composer-send-btn.active {
-  background: linear-gradient(135deg, var(--accent-violet), #7C3AED);
-  border-color: transparent;
-  color: #FFFFFF;
-  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.45);
-  cursor: pointer;
-}
-
 .composer-send-btn.active:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 18px rgba(139, 92, 246, 0.6);
+  background: var(--accent-violet-hover);
+  border-color: var(--accent-violet-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px -3px rgba(139, 92, 246, 0.85);
 }
 
 .send-icon {
@@ -371,10 +404,24 @@
   }
 }
 
+.composer-stop-btn {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--leaf-xs);
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #FCA5A5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
 .composer-stop-btn:hover {
-  background: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.28);
   color: #FFFFFF;
-  transform: scale(1.02);
+  transform: translateY(-1px);
 }
 
 .stop-square {
@@ -385,9 +432,10 @@
 }
 
 .stop-label {
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
 /* Footer Info */
@@ -395,31 +443,36 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 0.72rem;
-  color: var(--text-dim);
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
   flex-wrap: wrap;
+  user-select: none;
 }
 
 .info-sep {
-  opacity: 0.4;
+  opacity: 0.3;
 }
 
 /* Mode toggle button in footer */
 .composer-mode-toggle {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-secondary);
-  font-size: 0.7rem;
-  padding: 2px 7px;
-  border-radius: 4px;
+  background: rgba(244, 244, 245, 0.04);
+  border: 1px solid var(--line2);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: var(--leaf-xs);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .composer-mode-toggle:hover {
   background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.4);
   color: #C4B5FD;
 }
 

@@ -74,11 +74,29 @@ class TTSEngine:
         logger.info(f"Loading Kokoro-82M ONNX model from {self.model_path}...")
         t0 = time.time()
         try:
-            self.kokoro = Kokoro(self.model_path, self.voices_path)
+            import onnxruntime as rt
+            opts = rt.SessionOptions()
+            cpu_count = os.cpu_count() or 4
+            # Allocate dedicated intra-op execution threads for parallel ONNX tensor operations
+            opts.intra_op_num_threads = min(8, max(4, cpu_count - 2))
+            opts.inter_op_num_threads = 1
+            opts.graph_optimization_level = rt.GraphOptimizationLevel.ORT_ENABLE_ALL
+            opts.execution_mode = rt.ExecutionMode.ORT_SEQUENTIAL
+
+            session = rt.InferenceSession(self.model_path, sess_options=opts, providers=['CPUExecutionProvider'])
+            self.kokoro = Kokoro.from_session(session, self.voices_path)
             self.available_voices = sorted(self.kokoro.get_voices())
+
+            # Warmup inference to pre-allocate ONNX buffers and precompile execution graphs
+            try:
+                warmup_voice = self.fallback_voice if self.fallback_voice in self.available_voices else (self.available_voices[0] if self.available_voices else "af_heart")
+                self.kokoro.create("Hello", voice=warmup_voice, speed=1.0, lang="en-us")
+            except Exception as warmup_err:
+                logger.debug(f"Kokoro warmup skipped: {warmup_err}")
+
             logger.info(
-                f"Kokoro TTS loaded in {time.time()-t0:.2f}s with {len(self.available_voices)} voices. "
-                f"Default voice: '{self.default_voice}'"
+                f"Kokoro TTS loaded and warmed up in {time.time()-t0:.2f}s with {len(self.available_voices)} voices "
+                f"({opts.intra_op_num_threads} CPU threads). Default voice: '{self.default_voice}'"
             )
         except Exception as e:
             logger.error(f"Failed to load Kokoro ONNX model: {e}")

@@ -1,8 +1,8 @@
 .ruan-sidebar {
   width: 280px;
   height: 100vh;
-  background: #0d101a;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: #090B12;
+  border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -20,7 +20,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--line);
 }
 
 .sidebar-brand-btn {
@@ -51,7 +51,7 @@
 .sidebar-brand-divider {
   width: 1px;
   height: 24px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--line2);
   flex-shrink: 0;
 }
 
@@ -93,29 +93,29 @@
   justify-content: center;
   gap: 8px;
   padding: 10px 16px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(103, 232, 249, 0.1));
-  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: var(--leaf-xs);
+  background: var(--accent-violet);
+  border: 1px solid var(--accent-violet);
   color: #FFFFFF;
   font-family: var(--font-heading);
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 14px -3px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 4px 16px -3px rgba(139, 92, 246, 0.6);
 }
 
 .new-chat-btn:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.28), rgba(103, 232, 249, 0.2));
-  border-color: rgba(139, 92, 246, 0.55);
+  background: var(--accent-violet-hover);
+  border-color: var(--accent-violet-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px -2px rgba(139, 92, 246, 0.35);
+  box-shadow: 0 6px 22px -2px rgba(139, 92, 246, 0.85);
 }
 
 .new-chat-icon {
   width: 15px;
   height: 15px;
-  color: var(--accent-cyan);
+  color: #FFFFFF;
 }
 
 /* Search Box */
@@ -127,16 +127,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-sm);
+  background: rgba(244, 244, 245, 0.04);
+  border: 1px solid var(--line2);
+  border-radius: var(--leaf-xs);
   padding: 6px 10px;
   transition: border-color 0.15s ease;
 }
 
 .search-input-box:focus-within {
-  border-color: rgba(139, 92, 246, 0.4);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--accent-violet);
+  background: rgba(244, 244, 245, 0.07);
 }
 
 .search-icon {
@@ -200,20 +200,20 @@
   align-items: center;
   justify-content: space-between;
   padding: 9px 10px 9px 12px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--leaf-xs);
   margin-bottom: 2px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
 }
 
 .conversation-item:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(244, 244, 245, 0.05);
 }
 
 .conversation-item.active {
-  background: rgba(139, 92, 246, 0.12);
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(139, 92, 246, 0.16);
+  border: 1px solid rgba(139, 92, 246, 0.38);
 }
 
 .conv-indicator-bar {

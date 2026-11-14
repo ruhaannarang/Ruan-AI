@@ -18,6 +18,14 @@
   --accent-cyan: #67E8F9;
   --accent-cyan-hover: #38BDF8;
   --accent-cyan-glow: rgba(103, 232, 249, 0.25);
+  
+  /* Ruan Leaf Identity & Lines */
+  --leaf: 6px clamp(28px, 4.2vw, 60px) 6px clamp(28px, 4.2vw, 60px);
+  --leaf-m: 4px 22px 4px 22px;
+  --leaf-s: 3px 16px 3px 16px;
+  --leaf-xs: 2px 10px 2px 10px;
+  --line: rgba(244, 244, 245, 0.08);
+  --line2: rgba(244, 244, 245, 0.16);
 
   /* Functional Status Colors */
   --status-success: #10B981;

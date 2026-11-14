@@ -411,6 +411,8 @@ export function useChat(options = {}) {
         messages: messagesPayload,
         requestId: currentRequestId,
         signal: controller.signal,
+        voice: optionsRef.current?.isVoiceMode === true,
+        voiceOptions: optionsRef.current?.voiceOptions,
 
         // Status event from backend (e.g. 'Thinking...')
         onStatus: (status) => {
@@ -461,6 +463,63 @@ export function useChat(options = {}) {
               };
             })
           );
+        },
+
+        // Streamed audio chunk for low-latency streaming TTS
+        onAudioChunk: (chunk) => {
+          if (controller.signal.aborted || activeRequestIdRef.current !== currentRequestId) {
+            return;
+          }
+          if (optionsRef.current?.onAudioChunk) {
+            optionsRef.current.onAudioChunk(chunk);
+          }
+        },
+
+        // LLM text tokens finished (message content complete)
+        onTextDone: (data) => {
+          if (controller.signal.aborted || activeRequestIdRef.current !== currentRequestId) {
+            return;
+          }
+
+          setConversations(prev =>
+            prev.map(c => {
+              if (c.id !== targetConvId) return c;
+              return {
+                ...c,
+                updatedAt: Date.now(),
+                messages: c.messages.map(m =>
+                  m.id === assistantMessageId
+                    ? {
+                        ...m,
+                        isStreaming: false,
+                        isThinking: false,
+                        model: data?.model || m.model || 'gemma-4-e2b-it-qat'
+                      }
+                    : m
+                )
+              };
+            })
+          );
+        },
+
+        // Audio generation completion
+        onAudioDone: (data) => {
+          if (controller.signal.aborted || activeRequestIdRef.current !== currentRequestId) {
+            return;
+          }
+          if (optionsRef.current?.onAudioDone) {
+            optionsRef.current.onAudioDone(data);
+          }
+        },
+
+        // Audio chunk error
+        onAudioError: (err) => {
+          if (controller.signal.aborted || activeRequestIdRef.current !== currentRequestId) {
+            return;
+          }
+          if (optionsRef.current?.onAudioError) {
+            optionsRef.current.onAudioError(err);
+          }
         },
 
         // Generation successfully finished

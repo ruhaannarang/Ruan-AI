@@ -5,6 +5,9 @@
   position: relative;
   padding: 24px 20px;
   scroll-behavior: smooth;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .message-list-empty-wrapper {
@@ -14,12 +17,17 @@
   align-items: center;
   justify-content: center;
   padding: 24px 20px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .message-list-inner {
-  max-width: 820px;
+  max-width: 860px;
   margin: 0 auto;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .scroll-bottom-anchor {

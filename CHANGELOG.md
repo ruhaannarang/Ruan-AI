@@ -16,6 +16,60 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.1.0-alpha.8] - 2026-11-14
+
+### Fixed (Voice Service Stabilization: TTFP Latency & Extended Playback)
+* **Resolved Premature Voice Termination on Longer Responses:**
+  * Fixed SSE event protocol in `chatController.js`: separated `text_done` from final `done`. The server now awaits `ttsCoordinator.finish()` to synthesize and emit all remaining audio chunks before closing the request with `done`.
+  * Added `onTextDone` handler in `useChat.js`: when LLM text completes, assistant message display is finalized without resetting `activeRequestIdRef.current`. Subsequent audio chunks are no longer dropped.
+  * Fixed queue dropping in `StreamingTTSCoordinator`: expanded queue capacity from 10 to 80 chunks and eliminated `queue.shift()` front-dropping, ensuring multi-sentence long responses speak fully without missing sentences.
+  * Fixed accidental fallback interruption in `ChatPage.jsx`: `speakMessage` is now strictly guarded by `vs.hasStreamingAudio()`, preventing race conditions that restarted or cancelled active streaming playback.
+* **Drastic Latency Reduction (Time to First Audible Speech / TTFP):**
+  * Implemented eager clause splitting in `SentenceBuffer`: the very first chunk now splits early at clause boundaries (`,`, `;`, `:`, `\n`, `—`) or after 12–35 characters. This triggers Chunk 0 synthesis immediately in ~600–800ms while the LLM continues generating subsequent sentences.
+  * Optimized Kokoro ONNX runtime in `tts_engine.py`: configured multi-threaded CPU execution with `intra_op_num_threads` and graph optimization, achieving a 22–27% inference speedup.
+  * Added model warmup during voice service initialization, eliminating the 2-second ONNX compilation cold-start penalty on the user's first query.
+* **Verification & Testing:**
+  * Verified 10/10 tests in `test_sentence_buffer.js` and `test_sentence_buffer_eager.js`.
+  * Verified full streaming pipeline in `test_mock_streaming.js` and `test_streaming_tts.js`.
+  * Verified Web Audio playback and session persistence in `test_audio_queue_player.js`.
+  * Verified Vite frontend build with 0 errors.
+
+---
+
+## [0.1.0-alpha.7] - 2026-11-13
+
+### Added (Phase 1.7: Low-Latency Streaming Text-to-Speech)
+* **Sentence-Level Token Buffering (`SentenceBuffer`):**
+  * Created `server/src/services/voice/sentenceBuffer.js` consuming streaming LLM token deltas in real-time.
+  * Implemented boundary detection for terminal punctuation (`.`, `!`, `?`, `\n`) and Devanagari danda punctuation (`।`, `॥`).
+  * Guarded against premature splitting for decimal numbers (`3.14`, `0.05`), code identifiers and filenames (`index.js`, `model.transcribe()`), and common abbreviations (`Dr.`, `Mr.`, `Ms.`, `vs.`, `e.g.`, `i.e.`, `etc.`, initials like `John F. Kennedy`).
+  * Implemented phrase-level fallback flushing when sentences exceed 180 characters without terminal punctuation, splitting gracefully on commas, colons, or whitespace.
+  * Added speech markdown sanitization stripping bold markers, inline code ticks, blockquotes, and link syntax.
+* **Bounded Backend Streaming TTS Coordinator (`StreamingTTSCoordinator`):**
+  * Created `server/src/services/voice/streamingTtsCoordinator.js` managing asynchronous Kokoro synthesis per sentence chunk.
+  * Enforces sequential single-chunk synthesis to avoid CPU thread contention and context-switching overhead.
+  * Dispatches base64 WAV chunks over Server-Sent Events (`event: audio`) within the existing `/api/chat/stream` connection.
+  * Emits final `event: audio_done` with comprehensive latency telemetry (`ttftMs`, `ttfcMs`, `ttfaMs`, `avgSynthesisMs`, `totalAudioChunks`).
+  * Implemented non-fatal failure isolation: catches TTS errors, emits `event: audio_error`, and guarantees text token streaming is never interrupted or blocked.
+  * Enforces bounded backpressure queue to prevent memory growth if TTS lags behind LLM token generation.
+* **Gapless Web Audio API Queue Player (`AudioQueuePlayer`):**
+  * Created `client/src/utils/AudioQueuePlayer.js` utilizing standard Web Audio API (`AudioContext`).
+  * Decodes base64 WAV buffers and starts playback of Chunk 0 immediately upon arrival (~540ms total latency).
+  * Seamlessly schedules upcoming chunks on the audio clock (`scheduledTime = Math.max(currentTime + 0.02, nextStartTime)`), eliminating inter-sentence playback pauses.
+  * Tied to unique `requestId` for correlation and instant cancellation (stops in-flight nodes and rejects stale chunks from older requests).
+  * Exposes empirical Time to First Playback (TTFP) instrumentation directly in the message composer speaking banner and diagnostics.
+* **End-to-End Stream Pipeline & Interruption Integration:**
+  * Updated `chatController.js` and `api.js` to handle `voice: true` requests, streaming `token`, `status`, `audio`, `audio_done`, and `audio_error` events.
+  * Updated `useVoice.js` with `handleAudioChunk`, `prepareStreamingSession`, and `audioMetrics`.
+  * Updated `useChat.js` and `ChatPage.jsx` to pass streaming audio chunks to the player in real-time, deprecating post-generation speech delay in Voice Mode.
+* **Empirical Benchmarks & Verification:**
+  * Chunk 0 synthesis latency measured on Intel i5 CPU: **243.6ms** (English) and **295.4ms** (Hinglish).
+  * Real-world Time to First Audible Playback (TTFP) reduced from **~4,700ms** (waiting for full LLM completion) to **~540ms**, delivering an **>8x latency reduction**.
+  * Unit tests verified with 100% pass rate: `server/test_sentence_buffer.js`, `server/test_streaming_tts.js`, `server/test_mock_streaming.js`, and `client/test_audio_queue_player.js`.
+  * Client production build verified clean with zero bundle or CSS errors.
+
+---
+
 ## [0.1.0-alpha.6] - 2026-11-03
 
 ### Added (Phase 1.6.1: Voice Quality Stabilization & Hinglish Benchmarking)

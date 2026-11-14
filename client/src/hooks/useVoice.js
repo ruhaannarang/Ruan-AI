@@ -6,6 +6,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { transcribeAudio, synthesizeSpeech } from '../services/voiceApi';
+import { AudioQueuePlayer } from '../utils/AudioQueuePlayer';
 
 const STORAGE_VOICE_MODE = 'ruan_voice_mode_enabled';
 const STORAGE_AUTO_SEND = 'ruan_voice_auto_send_enabled';
@@ -35,6 +36,29 @@ export function useVoice({ onSendMessage, onTranscriptionComplete, activeConvers
   const [transcriptionPreview, setTranscriptionPreview] = useState('');
   const [detectedLanguage, setDetectedLanguage] = useState(null);
   const [activePlayingId, setActivePlayingId] = useState(null);
+  const [audioMetrics, setAudioMetrics] = useState(null);
+
+  // Streaming audio queue player instance
+  const audioQueuePlayerRef = useRef(null);
+  if (!audioQueuePlayerRef.current) {
+    audioQueuePlayerRef.current = new AudioQueuePlayer({
+      onPlaybackStateChange: (isPlaying) => {
+        setVoiceStatus(isPlaying ? 'speaking' : 'idle');
+        if (!isPlaying) {
+          setActivePlayingId(null);
+        }
+      },
+      onFirstPlay: (metrics) => {
+        setAudioMetrics({ ...metrics });
+      },
+      onPlaybackEnd: (metrics) => {
+        setAudioMetrics({ ...metrics });
+      },
+      onChunkError: (chunk, err) => {
+        console.warn(`[useVoice] Audio chunk playback error (chunk ${chunk.chunkIndex}):`, err.message);
+      }
+    });
+  }
 
   // References
   const mediaRecorderRef = useRef(null);
@@ -44,6 +68,7 @@ export function useVoice({ onSendMessage, onTranscriptionComplete, activeConvers
   const activeAbortControllerRef = useRef(null);
   const conversationIdRef = useRef(activeConversationId);
   const isAutoSendRef = useRef(isAutoSendEnabled);
+  const streamingChunksReceivedRef = useRef(0);
 
   useEffect(() => {
     isAutoSendRef.current = isAutoSendEnabled;
@@ -84,6 +109,12 @@ export function useVoice({ onSendMessage, onTranscriptionComplete, activeConvers
    * Immediately stops any current speech audio playback and releases resources.
    */
   const stopPlayback = useCallback(() => {
+    streamingChunksReceivedRef.current = 0;
+
+    if (audioQueuePlayerRef.current) {
+      audioQueuePlayerRef.current.stop();
+    }
+
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
       currentAudioRef.current.currentTime = 0;
@@ -108,6 +139,9 @@ export function useVoice({ onSendMessage, onTranscriptionComplete, activeConvers
   useEffect(() => {
     return () => {
       stopPlayback();
+      if (audioQueuePlayerRef.current) {
+        audioQueuePlayerRef.current.dispose();
+      }
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(t => t.stop());
       }
@@ -353,6 +387,36 @@ export function useVoice({ onSendMessage, onTranscriptionComplete, activeConvers
     }
   }, [activePlayingId, stopPlayback]);
 
+  /**
+   * Prepares the streaming audio player for an in-flight generation request.
+   * Resets scheduled offsets and records initial request timestamp.
+   */
+  const prepareStreamingSession = useCallback((requestId) => {
+    stopPlayback();
+    streamingChunksReceivedRef.current = 0;
+    if (audioQueuePlayerRef.current) {
+      audioQueuePlayerRef.current.startSession(requestId, Date.now());
+    }
+    setActivePlayingId(requestId);
+  }, [stopPlayback]);
+
+  /**
+   * Handles an incoming real-time audio chunk streamed from backend.
+   * Immediately schedules seamless playback in the Web Audio queue.
+   */
+  const handleAudioChunk = useCallback((chunk) => {
+    if (!chunk) return;
+    streamingChunksReceivedRef.current++;
+    setActivePlayingId(chunk.requestId);
+    if (audioQueuePlayerRef.current) {
+      audioQueuePlayerRef.current.enqueueChunk(chunk);
+    }
+  }, []);
+
+  const hasStreamingAudio = useCallback(() => {
+    return streamingChunksReceivedRef.current > 0;
+  }, []);
+
   return {
     isVoiceMode,
     toggleVoiceMode,
@@ -363,14 +427,18 @@ export function useVoice({ onSendMessage, onTranscriptionComplete, activeConvers
     transcriptionPreview,
     detectedLanguage,
     activePlayingId,
+    audioMetrics,
     isRecording: voiceStatus === 'listening',
     isTranscribing: voiceStatus === 'transcribing',
     isPlaying: voiceStatus === 'speaking',
+    hasStreamingAudio,
     startRecording,
     stopRecording,
     cancelRecording,
     speakMessage,
     stopPlayback,
+    prepareStreamingSession,
+    handleAudioChunk,
     clearError: () => setVoiceError(null),
     clearPreview: () => {
       setTranscriptionPreview('');
