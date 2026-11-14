@@ -22,6 +22,7 @@ export async function checkHealth(signal) {
       headers: {
         'Accept': 'application/json'
       },
+      credentials: 'include',
       signal
     });
 
@@ -95,6 +96,8 @@ export async function streamChat({
   requestId,
   voice,
   voiceOptions,
+  provider,
+  model,
   signal,
   onStatus,
   onToken,
@@ -160,13 +163,16 @@ export async function streamChat({
         'Content-Type': 'application/json',
         'Accept': 'text/event-stream'
       },
+      credentials: 'include',
       body: JSON.stringify({
         messages,
         temperature,
         max_tokens: maxTokens,
         requestId: genRequestId,
         voice: voice === true,
-        voiceOptions
+        voiceOptions,
+        provider,
+        model
       }),
       signal
     });
@@ -367,6 +373,7 @@ export async function abortChat(requestId) {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify({ requestId })
     });
 
@@ -389,6 +396,13 @@ export function formatModelDisplayName(modelId) {
   if (!modelId || typeof modelId !== 'string') return 'Gemma 4 E2B IT QAT';
   if (modelId === 'gemma-4-e2b-it-qat') return 'Gemma 4 E2B IT QAT';
   if (modelId === 'ling-3.0-tiny') return 'Ling 3.0 Tiny';
+  if (modelId.includes('nemotron-3.5-bolt')) return 'Nemotron 3.5 Bolt (NIM)';
+  if (modelId.includes('laguna')) return 'Laguna XS (NIM)';
+  if (modelId.includes('minimax')) return 'MiniMax M3.1 Flash (NIM)';
+  if (modelId.includes('llama-3.1-70b')) return 'Llama 3.1 70B (NIM)';
+  if (modelId.includes('llama-3.1-8b')) return 'Llama 3.1 8B (NIM)';
+  if (modelId.includes('llama-3.3-70b')) return 'Llama 3.3 70B (NIM)';
+  if (modelId.includes('mistral-large')) return 'Mistral Large (NIM)';
   if (modelId.includes('qwen2.5-vl-7b')) return 'Qwen 2.5 VL 7B';
-  return modelId.split(/[-_]/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return modelId.split(/[-_/]/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }

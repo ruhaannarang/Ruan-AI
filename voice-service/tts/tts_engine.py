@@ -39,6 +39,11 @@ TECHNICAL_TERMS = {
 # Devanagari Unicode range: \u0900 - \u097F
 DEVANAGARI_REGEX = re.compile(r'[\u0900-\u097F]')
 
+# Comprehensive Unicode Emoji regex matching pictographs, presentation forms, variation selectors, skin tones, and ZWJs
+EMOJI_REGEX = re.compile(
+    r'[\U00010000-\U0010ffff\u2600-\u27ff\ufe00-\ufe0f\u200d\u2300-\u23ff\u2b50\u2b55\u25aa-\u25fe\u3030\u303d]'
+)
+
 # Common Roman Hinglish marker words
 HINGLISH_MARKERS = {
     "hai", "hain", "ho", "hoon", "tha", "the", "thi", "mera", "meri", "mere",
@@ -150,12 +155,16 @@ class TTSEngine:
         """
         Splits long responses along natural sentence boundaries (. ! ? \n)
         to prevent awkward mid-phrase cuts and ensure smooth sequential audio.
+        Strips all Unicode emojis so Kokoro/espeak never pronounces emoji descriptions aloud.
         """
+        # Strip all Unicode emojis and modifiers so Kokoro never speaks emoji names (e.g. "smiling face")
+        clean = EMOJI_REGEX.sub('', text)
         # Clean markdown characters (bold, asterisks, headers, code block ticks) for cleaner speech
-        clean = re.sub(r'```[\s\S]*?```', '', text) # Remove multi-line code blocks
+        clean = re.sub(r'```[\s\S]*?```', '', clean) # Remove multi-line code blocks
         clean = re.sub(r'`([^`]+)`', r'\1', clean)   # Remove inline code ticks
         clean = re.sub(r'[*_#~\[\]]', '', clean)     # Remove markdown formatting symbols
         clean = re.sub(r'https?://\S+', 'link', clean) # Replace URLs with "link"
+        clean = re.sub(r'\s+([.,!?:;।])', r'\1', clean) # Remove spaces before punctuation left after emoji removal
         clean = re.sub(r'\s+', ' ', clean).strip()
 
         if not clean:

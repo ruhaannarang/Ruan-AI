@@ -130,5 +130,20 @@ console.log('--- Running SentenceBuffer Unit Tests ---');
   console.log('✓ Test 9: Whitespace guard passed');
 }
 
+// Test 10: Emoji stripping so TTS never reads out "smiling face", "thumbs up", etc.
+{
+  const sb = new SentenceBuffer();
+  let chunks = [];
+  chunks.push(...sb.push('Yes boss! 😊 How can I help you today? 👍 '));
+  chunks.push(...sb.push('It is sunny outside ☀️ and coding is great! 🚀❤️ '));
+  chunks.push(...sb.flush());
+
+  assert.strictEqual(chunks.length, 3);
+  assert.strictEqual(chunks[0], 'Yes boss!');
+  assert.strictEqual(chunks[1], 'How can I help you today?');
+  assert.strictEqual(chunks[2], 'It is sunny outside and coding is great!');
+  console.log('✓ Test 10: Emoji stripping passed (no spoken emoji descriptions)');
+}
+
 console.log('--- ALL SENTENCE BUFFER TESTS PASSED ---');
 

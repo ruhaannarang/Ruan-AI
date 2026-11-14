@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { lmStudioService } from '../services/lmStudioService.js';
+import { llmCoordinator } from '../services/llmCoordinator.js';
 import { StreamingTTSCoordinator } from '../services/voice/streamingTtsCoordinator.js';
 
 /**
@@ -11,6 +11,8 @@ const activeGenerations = new Map();
 // Allowed standard chat roles
 const ALLOWED_ROLES = new Set(['system', 'user', 'assistant']);
 const MAX_MESSAGE_LENGTH = 65536; // 64 KB per message safety limit
+
+export const DEFAULT_SYSTEM_INSTRUCTION = 'You are Ruan AI, a personal AI assistant. Keep all responses short, simple, and easy to understand, just like a natural, real-life conversation. Avoid long explanations, fluff, or walls of text. Never use emojis in your responses so speech stays clean and natural. When given a direct task, instruction, or command to do something, start with "Yes boss". For questions, greetings, or explanations, answer directly without saying "Yes boss".';
 
 /**
  * Helper to write a Server-Sent Event to the Express response.
@@ -78,12 +80,21 @@ function validateChatPayload(body) {
     return { valid: false, error: "'voiceOptions' must be an object" };
   }
 
+  if (body.provider !== undefined && typeof body.provider !== 'string') {
+    return { valid: false, error: "'provider' must be a string ('local' or 'nvidia_nim')" };
+  }
+
+  if (body.model !== undefined && typeof body.model !== 'string') {
+    return { valid: false, error: "'model' must be a string" };
+  }
+
   return { valid: true };
 }
 
 /**
  * POST /api/chat/stream
- * Streams chat completion tokens from LM Studio via Server-Sent Events (SSE).
+ * Streams chat completion tokens via Server-Sent Events (SSE).
+ * Supports local LM Studio runtime and optional online NVIDIA NIM API.
  */
 export async function streamChat(req, res, next) {
   const validation = validateChatPayload(req.body);
@@ -97,7 +108,7 @@ export async function streamChat(req, res, next) {
     });
   }
 
-  const { messages, temperature, max_tokens, voice, voiceOptions } = req.body;
+  const { messages, temperature, max_tokens, voice, voiceOptions, provider, model } = req.body;
   const requestId = req.body.requestId && typeof req.body.requestId === 'string'
     ? req.body.requestId
     : crypto.randomUUID();
@@ -155,10 +166,21 @@ export async function streamChat(req, res, next) {
   res.on('close', handleClientClose);
 
   try {
-    const { stream, model } = await lmStudioService.streamChatCompletion({
-      messages,
+    // Ensure system prompt is present and standardized at the start of conversation
+    const formattedMessages = [...messages];
+    const systemIndex = formattedMessages.findIndex(m => m.role === 'system');
+    if (systemIndex === -1) {
+      formattedMessages.unshift({ role: 'system', content: DEFAULT_SYSTEM_INSTRUCTION });
+    } else {
+      formattedMessages[systemIndex] = { role: 'system', content: DEFAULT_SYSTEM_INSTRUCTION };
+    }
+
+    const { stream, model: activeModel, provider: activeProvider } = await llmCoordinator.streamChatCompletion({
+      messages: formattedMessages,
+      model,
       temperature,
       maxTokens: max_tokens,
+      provider,
       signal: abortController.signal
     });
 
@@ -175,7 +197,8 @@ export async function streamChat(req, res, next) {
     // Send initial metadata event
     sendSSE(res, 'init', {
       requestId,
-      model,
+      model: activeModel,
+      provider: activeProvider,
       timestamp: new Date().toISOString()
     });
 
@@ -205,7 +228,8 @@ export async function streamChat(req, res, next) {
           // Notify client that text token streaming has finished
           sendSSE(res, 'text_done', {
             requestId,
-            model,
+            model: activeModel,
+            provider: activeProvider,
             finish_reason: finishReason,
             totalTokens: tokenCount
           });
@@ -222,7 +246,8 @@ export async function streamChat(req, res, next) {
           // Emit canonical completion event after both text and all audio chunks have been sent
           sendSSE(res, 'done', {
             requestId,
-            model,
+            model: activeModel,
+            provider: activeProvider,
             finish_reason: finishReason,
             totalTokens: tokenCount
           });
@@ -284,7 +309,8 @@ export async function streamChat(req, res, next) {
       // Notify client that text token streaming has finished
       sendSSE(res, 'text_done', {
         requestId,
-        model,
+        model: activeModel,
+        provider: activeProvider,
         finish_reason: finishReason,
         totalTokens: tokenCount
       });
@@ -299,7 +325,8 @@ export async function streamChat(req, res, next) {
 
       sendSSE(res, 'done', {
         requestId,
-        model,
+        model: activeModel,
+        provider: activeProvider,
         finish_reason: finishReason,
         totalTokens: tokenCount
       });

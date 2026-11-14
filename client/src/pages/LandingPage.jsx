@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import UserMenu from '../components/auth/UserMenu';
 import './LandingPage.css';
 
 export default function LandingPage({ navigateTo, onOpenDiagnostics }) {
@@ -995,6 +996,7 @@ export default function LandingPage({ navigateTo, onOpenDiagnostics }) {
                 <path d="M11 5 6 9H3v6h3l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
               </svg>
             </button>
+            <UserMenu compact={true} />
             <button
               className="btn primary sm get-started-desktop"
               type="button"

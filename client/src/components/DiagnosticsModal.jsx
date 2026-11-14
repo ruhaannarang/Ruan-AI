@@ -128,6 +128,30 @@ export default function DiagnosticsModal({
                 </p>
               </div>
 
+              {/* NVIDIA NIM */}
+              <div className="subsystem-card">
+                <div className="subsystem-top font-mono">
+                  <span>☁️ NVIDIA NIM (ONLINE)</span>
+                  <span className={`pill ${healthData?.services?.nvidiaNim?.configured ? 'connected' : 'uninitialized'}`}>
+                    {healthData?.services?.nvidiaNim?.configured ? '● READY' : '○ OPTIONAL'}
+                  </span>
+                </div>
+                <div className="subsystem-props font-mono">
+                  <div><span>ENDPOINT:</span> <strong>{healthData?.services?.nvidiaNim?.endpoint || 'https://integrate.api.nvidia.com/v1'}</strong></div>
+                  <div>
+                    <span>TARGET MODEL:</span> 
+                    <strong className={healthData?.services?.nvidiaNim?.configured ? 'green' : 'amber'}>
+                      {healthData?.services?.nvidiaNim?.activeModel || 'meta/llama-3.1-70b-instruct'} {healthData?.services?.nvidiaNim?.configured ? '✓' : '(UNCONFIGURED)'}
+                    </strong>
+                  </div>
+                </div>
+                <p className="subsystem-note">
+                  {healthData?.services?.nvidiaNim?.configured
+                    ? 'NVIDIA NIM API key configured. Ready for cloud streaming inference.'
+                    : 'Optional online provider. Add NVIDIA_NIM_API_KEY in server/.env when required.'}
+                </p>
+              </div>
+
               {/* STT */}
               <div className="subsystem-card">
                 <div className="subsystem-top font-mono">

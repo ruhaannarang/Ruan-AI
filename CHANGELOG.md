@@ -18,6 +18,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [0.1.0-alpha.8] - 2026-11-14
 
+### Added (Redesigned Calm Chat Interface & Floating Composer)
+* **Single Calm Column Architecture:**
+  * Implemented the "one calm column" layout concept: history-only sidebar on the left, streamlined top bar with dual model & voice mode controls, and an adaptive composer that sits centered in the hero screen on empty chats and seamlessly docks at the bottom once messages begin.
+  * Added animated ambient aurora background with slow drifting radial gradient orbs (`drift1`, `drift2`).
+  * Created dynamic time-based greeting ("Good morning.", "Good afternoon.", "Good evening.", "Still up?") with staggered entry animations and violet gradient accent.
+  * Added official animated Ruan AI twin-leaf logo mark with pulsing concentric radial rings and sheen sheen animation.
+  * Implemented glowing floating composer with spinning conic gradient border on focus (`@property --a`), soundwave listening bars for speech input, "Review before send" toggle pill, and push-to-talk mic.
+  * Added four clickable starter suggestions in the hero view for fast interaction.
+  * Redesigned chat thread with sleek user bubbles, streaming blinking cursor, markdown syntax highlighting with copy buttons, and action bars (Copy, Read aloud).
+  * Styled collapsible sidebar with grouped conversation history (Today, Yesterday, Earlier), real-time search filtering, and footer account identity with tools popover (Benchmark, System diagnostics).
+
+### Added (Mandatory User Sign-Up & Authentication Gate)
+* **Frontend Authentication Gate (`AuthGate.jsx` & `AuthGate.css`):**
+  * Created `AuthGate` wrapper gating access to the `/app` assistant workspace. Unauthenticated visitors are presented with a glassmorphic sign-up and authentication screen with Google Identity Services.
+  * Embedded official Google Sign-In button and Google One Tap prompt with fallback diagnostics access.
+  * Added `UserMenu` to the canonical Landing Page (`LandingPage.jsx`) top navigation for seamless sign-in or profile avatar status before launching the workspace.
+  * Configured `credentials: 'include'` on all chat and voice API calls to preserve HTTP-only `ruan_session` cookies across origins.
+* **Backend Endpoint Protection & Session Enforcement:**
+  * Protected `/api/chat/stream` and `/api/chat/abort` routes with `requireAuth` middleware, returning standard 401 `AUTH_REQUIRED` for unauthenticated requests.
+  * Enhanced `authMiddleware.js` to support both HTTP-only session cookies (`ruan_session`) and `Authorization: Bearer <token>` headers for automated tools and test runners.
+  * Created comprehensive automated test suite `server/test_auth_gate.js` verifying 401 blocking of unauthenticated streams/aborts, public endpoint access, cookie-based profile retrieval, and stale cookie cleanup (5/5 tests passing).
+
+### Added (Mandatory User Sign-Up & Authentication Gate)
+* **Frontend Authentication Gate (`AuthGate.jsx` & `AuthGate.css`):**
+  * Created `AuthGate` wrapper gating access to the `/app` assistant workspace. Unauthenticated visitors are presented with a glassmorphic sign-up and authentication screen with Google Identity Services.
+  * Embedded official Google Sign-In button and Google One Tap prompt with fallback diagnostics access.
+  * Added `UserMenu` to the canonical Landing Page (`LandingPage.jsx`) top navigation for seamless sign-in or profile avatar status before launching the workspace.
+  * Configured `credentials: 'include'` on all chat and voice API calls to preserve HTTP-only `ruan_session` cookies across origins.
+* **Backend Endpoint Protection & Session Enforcement:**
+  * Protected `/api/chat/stream` and `/api/chat/abort` routes with `requireAuth` middleware, returning standard 401 `AUTH_REQUIRED` for unauthenticated requests.
+  * Enhanced `authMiddleware.js` to support both HTTP-only session cookies (`ruan_session`) and `Authorization: Bearer <token>` headers for automated tools and test runners.
+  * Created comprehensive automated test suite `server/test_auth_gate.js` verifying 401 blocking of unauthenticated streams/aborts, public endpoint access, cookie-based profile retrieval, and stale cookie cleanup (5/5 tests passing).
+
+### Added (Optional Online LLM Provider: NVIDIA NIM API)
+* **Decoupled LLM Architecture & Provider Coordinator (`llmCoordinator.js`):**
+  * Created `server/src/services/nvidiaNimService.js` implementing OpenAI-compatible SSE streaming completion targeting `https://integrate.api.nvidia.com/v1`.
+  * Created `server/src/services/llmCoordinator.js` dynamically routing chat requests between local LM Studio (default) and optional NVIDIA NIM cloud models.
+  * Preserved 100% local-first default: when `NVIDIA_NIM_API_KEY` is not set, Ruan AI operates completely locally without warnings or external network calls.
+  * Supported runtime provider switching via request payload (`provider: 'local' | 'nvidia_nim'`) and environment variable (`LLM_PROVIDER`).
+* **UI Provider Switcher & Diagnostics:**
+  * Updated `ModelStatus.jsx` and `ModelStatus.css` with a dual-provider switcher popover allowing one-click toggling between Local LM Studio and NVIDIA NIM.
+  * Updated `DiagnosticsModal.jsx` with an NVIDIA NIM readiness card displaying active configuration and endpoint telemetry.
+  * Updated `server/.env.example` with `NVIDIA_NIM_API_KEY`, `NVIDIA_NIM_BASE_URL`, and `NVIDIA_NIM_MODEL`.
+
 ### Fixed (Voice Service Stabilization: TTFP Latency & Extended Playback)
 * **Resolved Premature Voice Termination on Longer Responses:**
   * Fixed SSE event protocol in `chatController.js`: separated `text_done` from final `done`. The server now awaits `ttsCoordinator.finish()` to synthesize and emit all remaining audio chunks before closing the request with `done`.

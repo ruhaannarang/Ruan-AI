@@ -5,6 +5,7 @@ import { checkHealth } from './services/api';
 import DiagnosticsModal from './components/DiagnosticsModal';
 import ChatPage from './pages/ChatPage';
 import LandingPage from './pages/LandingPage';
+import AuthGate from './components/auth/AuthGate';
 
 import './styles/App.css';
 
@@ -126,12 +127,17 @@ export default function App() {
 
   return (
     <div className="ruan-app" id="ruan-app-root">
-      {/* Route 1: /app (Dedicated Conversation Application) */}
+      {/* Route 1: /app (Dedicated Conversation Application - Protected by AuthGate) */}
       {routeInfo.type === 'app' && (
-        <ChatPage
+        <AuthGate
           navigateTo={navigateTo}
           onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
-        />
+        >
+          <ChatPage
+            navigateTo={navigateTo}
+            onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
+          />
+        </AuthGate>
       )}
 
       {/* Route 2: / (Canonical Public Landing Page with Cinematic Boot Sequence) */}

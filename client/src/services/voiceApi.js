@@ -34,6 +34,7 @@ export async function transcribeAudio(audioBlob, signal) {
     const response = await fetch(`${BASE_URL}/voice/transcribe`, {
       method: 'POST',
       body: formData,
+      credentials: 'include',
       signal
     });
 
@@ -89,6 +90,7 @@ export async function synthesizeSpeech(text, options = {}, signal) {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify({
         text: text.trim(),
         voice: options.voice,
@@ -128,6 +130,7 @@ export async function getVoiceHealth(signal) {
     const response = await fetch(`${BASE_URL}/voice/health`, {
       method: 'GET',
       headers: { 'Accept': 'application/json' },
+      credentials: 'include',
       signal
     });
     if (!response.ok) {
@@ -148,6 +151,7 @@ export async function getAvailableVoices(signal) {
     const response = await fetch(`${BASE_URL}/voice/voices`, {
       method: 'GET',
       headers: { 'Accept': 'application/json' },
+      credentials: 'include',
       signal
     });
     if (!response.ok) return { default_voice: 'hf_alpha', voices: [] };
@@ -166,7 +170,10 @@ export async function getAvailableVoices(signal) {
  */
 export async function getBenchmarkPrompts(signal) {
   try {
-    const response = await fetch(`${BASE_URL}/voice/benchmark/prompts`, { signal });
+    const response = await fetch(`${BASE_URL}/voice/benchmark/prompts`, {
+      credentials: 'include',
+      signal
+    });
     if (!response.ok) return { success: false, prompts: [] };
     return await response.json();
   } catch (err) {
@@ -192,6 +199,7 @@ export async function compareBenchmarkSample(audioBlob, { reference, category, t
     const response = await fetch(`${BASE_URL}/voice/benchmark/compare`, {
       method: 'POST',
       body: formData,
+      credentials: 'include',
       signal
     });
     if (!response.ok) {
@@ -223,6 +231,7 @@ export async function saveBenchmarkSample(audioBlob, { sampleId, reference, cate
     const response = await fetch(`${BASE_URL}/voice/benchmark/save`, {
       method: 'POST',
       body: formData,
+      credentials: 'include',
       signal
     });
     if (!response.ok) {
@@ -240,7 +249,10 @@ export async function saveBenchmarkSample(audioBlob, { sampleId, reference, cate
  */
 export async function getBenchmarkHistory(signal) {
   try {
-    const response = await fetch(`${BASE_URL}/voice/benchmark/history`, { signal });
+    const response = await fetch(`${BASE_URL}/voice/benchmark/history`, {
+      credentials: 'include',
+      signal
+    });
     if (!response.ok) return { success: false, history: { runs: [], summary: {} } };
     return await response.json();
   } catch (err) {
@@ -255,6 +267,7 @@ export async function clearBenchmarkHistory(signal) {
   try {
     const response = await fetch(`${BASE_URL}/voice/benchmark/history`, {
       method: 'DELETE',
+      credentials: 'include',
       signal
     });
     return await response.json();

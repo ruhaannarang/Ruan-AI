@@ -18,6 +18,9 @@ const MAX_PHRASE_CHARS = 120;
 // Maximum characters before forcing a phrase-level split for the very first chunk (for low TTFP)
 const FIRST_CHUNK_PHRASE_CHARS = 65;
 
+// Comprehensive Unicode Emoji regex matching pictographs, presentation forms, variation selectors, skin tones, and ZWJs
+const EMOJI_REGEX = /(\p{Extended_Pictographic}|\p{Emoji_Presentation}|[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{1F1E6}-\u{1F1FF}])/gu;
+
 export class SentenceBuffer {
   constructor(options = {}) {
     this.minChunkChars = options.minChunkChars || MIN_CHUNK_CHARS;
@@ -28,14 +31,17 @@ export class SentenceBuffer {
   }
 
   /**
-   * Cleans text of markdown markup for cleaner TTS pronunciation.
-   * Preserves alphanumeric content and natural punctuation.
+   * Cleans text of emojis and markdown markup for cleaner TTS pronunciation.
+   * Strips all Unicode emojis so Kokoro does not pronounce them as "smiling face", "thumbs up", etc.
+   * Preserves alphanumeric content, Devanagari script, and natural punctuation.
    * @param {string} text
    * @returns {string}
    */
   static cleanForSpeech(text) {
     if (!text) return '';
     let clean = text;
+    // Strip all Unicode emojis and modifiers so TTS never speaks emoji names aloud
+    clean = clean.replace(EMOJI_REGEX, '');
     // Remove markdown code blocks ```...```
     clean = clean.replace(/```[\s\S]*?```/g, '');
     // Replace inline code ticks `foo` with foo
@@ -53,6 +59,8 @@ export class SentenceBuffer {
     clean = clean.replace(/^>\s+/gm, '');
     // Remove bullet points at line start (- or * or +)
     clean = clean.replace(/^[\*\-\+]\s+/gm, '');
+    // Remove trailing spaces before punctuation left after emoji removal
+    clean = clean.replace(/[ \t]+([.,!?:;।])/g, '$1');
     // Normalize multiple whitespace to single space
     clean = clean.replace(/[ \t]+/g, ' ');
     return clean;

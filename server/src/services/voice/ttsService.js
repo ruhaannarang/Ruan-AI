@@ -4,6 +4,7 @@
  */
 
 import { config } from '../../config/index.js';
+import { SentenceBuffer } from './sentenceBuffer.js';
 
 export class TTSService {
   constructor() {
@@ -14,6 +15,7 @@ export class TTSService {
 
   /**
    * Synthesizes text to speech audio buffer.
+   * Cleans emojis and markdown markup so Kokoro never speaks emoji descriptions aloud.
    * @param {Object} options
    * @param {string} options.text - Input text to synthesize
    * @param {string} [options.voice] - Optional voice name (e.g. 'hf_alpha', 'af_heart')
@@ -23,7 +25,7 @@ export class TTSService {
    * @returns {Promise<{ buffer: Buffer, contentType: string }>}
    */
   async synthesizeSpeech({ text, voice, speed = 1.0, lang = 'auto', signal }) {
-    const cleanText = text?.trim();
+    const cleanText = SentenceBuffer.cleanForSpeech(text).trim();
     if (!cleanText) {
       const err = new Error('Text parameter is required for speech synthesis');
       err.statusCode = 400;

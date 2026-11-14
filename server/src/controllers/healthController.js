@@ -1,6 +1,8 @@
 import { config } from '../config/index.js';
 import { lmStudioService } from '../services/lmStudioService.js';
+import { nvidiaNimService } from '../services/nvidiaNimService.js';
 import { voiceService } from '../services/voice/voiceService.js';
+import { llmCoordinator } from '../services/llmCoordinator.js';
 
 const startTime = Date.now();
 
@@ -12,10 +14,13 @@ const startTime = Date.now();
 export const getHealth = async (req, res, next) => {
   try {
     const uptimeSeconds = Math.floor((Date.now() - startTime) / 1000);
-    const [lmHealth, voiceHealth] = await Promise.all([
+    const [lmHealth, nimHealth, voiceHealth] = await Promise.all([
       lmStudioService.checkHealth(),
+      nvidiaNimService.checkHealth(),
       voiceService.checkHealth()
     ]);
+
+    const activeProvider = llmCoordinator.resolveProvider();
 
     const healthPayload = {
       status: 'ok',
@@ -23,6 +28,10 @@ export const getHealth = async (req, res, next) => {
       uptime: uptimeSeconds,
       timestamp: new Date().toISOString(),
       environment: config.nodeEnv,
+      llm: {
+        activeProvider,
+        defaultModel: activeProvider === 'nvidia_nim' ? config.nvidiaNim.model : config.lmStudio.model
+      },
       services: {
         lmStudio: {
           status: lmHealth.connected ? 'connected' : 'disconnected',
@@ -31,6 +40,14 @@ export const getHealth = async (req, res, next) => {
           modelAvailable: lmHealth.modelAvailable,
           availableModels: lmHealth.availableModels,
           error: lmHealth.error
+        },
+        nvidiaNim: {
+          status: nimHealth.connected ? 'connected' : (nimHealth.configured ? 'error' : 'unconfigured'),
+          configured: nimHealth.configured,
+          endpoint: config.nvidiaNim.baseUrl,
+          activeModel: config.nvidiaNim.model,
+          availableModels: nimHealth.availableModels || [],
+          error: nimHealth.error
         },
         stt: voiceHealth.stt,
         tts: voiceHealth.tts

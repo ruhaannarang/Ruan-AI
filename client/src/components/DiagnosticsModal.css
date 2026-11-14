@@ -148,7 +148,7 @@
 
 .refresh-glyph.spinning {
   display: inline-block;
-  animation: spin 800ms linear infinite;
+  animation: diagSpin 800ms linear infinite;
 }
 
 /* Metrics Grid */
@@ -318,7 +318,7 @@
   background: var(--accent-violet-hover);
 }
 
-@keyframes spin {
+@keyframes diagSpin {
   to { transform: rotate(360deg); }
 }
 

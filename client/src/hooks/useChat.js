@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { streamChat, abortChat } from '../services/api';
 
-const SYSTEM_INSTRUCTION = 'You are Ruan AI, a helpful personal AI assistant. Be clear, thoughtful, accurate, and conversational. Explain technical concepts in an understandable way. Do not claim capabilities you do not have.';
+const SYSTEM_INSTRUCTION = 'You are Ruan AI, a personal AI assistant. Keep all responses short, simple, and easy to understand, just like a natural, real-life conversation. Avoid long explanations, fluff, or walls of text. Never use emojis in your responses so speech stays clean and natural. When given a direct task, instruction, or command to do something, start with "Yes boss". For questions, greetings, or explanations, answer directly without saying "Yes boss".';
 const STORAGE_KEY = 'ruan_ai_conversations_v1';
 const ACTIVE_CONV_KEY = 'ruan_ai_active_conv_id';
+const STORAGE_PROVIDER_KEY = 'ruan_ai_selected_provider';
 
 const VALID_ROLES = new Set(['system', 'user', 'assistant']);
 
@@ -172,6 +173,25 @@ export function useChat(options = {}) {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingConvId, setGeneratingConvId] = useState(null);
+
+  // Selected LLM provider: 'local' (LM Studio) | 'nvidia_nim' (Online)
+  const [selectedProvider, setSelectedProvider] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        return localStorage.getItem(STORAGE_PROVIDER_KEY) || 'local';
+      }
+    } catch {}
+    return 'local';
+  });
+
+  // Persist selected provider
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_PROVIDER_KEY, selectedProvider);
+      }
+    } catch {}
+  }, [selectedProvider]);
 
   // References to manage in-flight requests and avoid stale closures
   const activeRequestIdRef = useRef(null);
@@ -413,6 +433,7 @@ export function useChat(options = {}) {
         signal: controller.signal,
         voice: optionsRef.current?.isVoiceMode === true,
         voiceOptions: optionsRef.current?.voiceOptions,
+        provider: selectedProvider,
 
         // Status event from backend (e.g. 'Thinking...')
         onStatus: (status) => {
@@ -641,6 +662,8 @@ export function useChat(options = {}) {
     activeConversation,
     isGenerating,
     generatingConvId,
+    selectedProvider,
+    setSelectedProvider,
     setActiveId,
     createNewChat,
     deleteConversation,

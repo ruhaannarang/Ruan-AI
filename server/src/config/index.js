@@ -1,6 +1,12 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Load environment variables from .env
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Robustly load environment variables from server/.env and current working directory
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config();
 
 export const config = {
@@ -14,6 +20,16 @@ export const config = {
     model: process.env.LM_STUDIO_MODEL || 'gemma-4-e2b-it-qat',
     timeoutMs: parseInt(process.env.LM_STUDIO_TIMEOUT_MS || '60000', 10),
     healthTimeoutMs: parseInt(process.env.LM_STUDIO_HEALTH_TIMEOUT_MS || '2500', 10)
+  },
+  llm: {
+    provider: process.env.LLM_PROVIDER || 'local' // 'local' | 'nvidia_nim'
+  },
+  nvidiaNim: {
+    apiKey: process.env.NVIDIA_NIM_API_KEY || '',
+    baseUrl: process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1',
+    model: process.env.NVIDIA_NIM_MODEL || 'nvidia/nemotron-3.5-bolt-e4b',
+    timeoutMs: parseInt(process.env.NVIDIA_NIM_TIMEOUT_MS || '60000', 10),
+    healthTimeoutMs: parseInt(process.env.NVIDIA_NIM_HEALTH_TIMEOUT_MS || '5000', 10)
   },
   voice: {
     enabled: process.env.VOICE_ENABLED !== 'false',

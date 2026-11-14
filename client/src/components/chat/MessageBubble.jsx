@@ -1,31 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import MarkdownRenderer from './MarkdownRenderer';
-import LogoMark from '../LogoMark';
-import { formatModelDisplayName } from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
 import './MessageBubble.css';
 
-/**
- * Formats unix timestamp into readable 12-hour time (e.g., "10:45 PM").
- * @param {number} timestamp
- * @returns {string}
- */
-function formatTime(timestamp) {
-  if (!timestamp) return '';
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-export default function MessageBubble({ message, voiceState }) {
+export default function MessageBubble({ message, voiceState, onToast }) {
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
-  const [avatarError, setAvatarError] = useState(false);
-  const { user } = useAuth();
-
-  // Reset image error if user profile picture updates
-  useEffect(() => {
-    setAvatarError(false);
-  }, [user?.picture]);
 
   const handleCopy = async () => {
     if (!message.content) return;
@@ -41,149 +20,78 @@ export default function MessageBubble({ message, voiceState }) {
         document.body.removeChild(textarea);
       }
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.warn('Failed to copy response:', err);
+      setTimeout(() => setCopied(false), 1800);
+      onToast && onToast('Copied to clipboard.');
+    } catch {
+      onToast && onToast('Failed to copy. Select and copy manually.');
     }
   };
 
-  // Determine fallback initials if user has no avatar picture or image fails to load
-  const userInitial = user?.name?.trim()?.charAt(0)?.toUpperCase()
-    || user?.email?.trim()?.charAt(0)?.toUpperCase()
-    || 'U';
+  const handleSpeak = () => {
+    if (voiceState?.speakMessage) {
+      voiceState.speakMessage(message.id, message.content);
+      onToast && onToast('Reading reply aloud…');
+    } else {
+      onToast && onToast('Voice playback unavailable.');
+    }
+  };
 
-  const hasProfilePicture = isUser && user?.picture && !avatarError;
+  if (isUser) {
+    return (
+      <div className="msg user">
+        <div className="bubble">{message.content}</div>
+      </div>
+    );
+  }
 
   return (
-    <div className={`message-bubble-row ${isUser ? 'user-row' : 'assistant-row'}`}>
-      <div 
-        className={`message-avatar ${isUser ? 'user-avatar' : 'assistant-avatar'} ${hasProfilePicture ? 'has-user-pic' : ''}`} 
-        aria-hidden="true"
-        title={isUser ? (user?.name || 'You') : 'Ruan AI'}
-      >
-        {isUser ? (
-          hasProfilePicture ? (
-            <img
-              src={user.picture}
-              alt={user.name || 'User profile'}
-              className="message-user-avatar-img"
-              onError={() => setAvatarError(true)}
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <span className="avatar-letter">{userInitial}</span>
-          )
-        ) : (
-          <LogoMark size={20} />
-        )}
+    <div className="msg ai">
+      <div className="mk" aria-hidden="true">
+        <svg viewBox="0 0 112 119"><use href="#mark" /></svg>
       </div>
 
-      <div className={`message-container ${isUser ? 'user-container' : 'assistant-container'}`}>
-        <div className="message-meta-header">
-          <span className="message-author">{isUser ? 'You' : 'Ruan AI'}</span>
-          {!isUser && <span className="model-chip font-mono">{formatModelDisplayName(message.model)}</span>}
-          <span className="message-timestamp font-mono">{formatTime(message.timestamp)}</span>
-        </div>
+      <div className="body">
+        {/* Thinking Indicator */}
+        {message.isThinking && !message.content && (
+          <div className="think" role="status" aria-label="Thinking">
+            <i></i>
+            <i></i>
+            <i></i>
+          </div>
+        )}
 
-        <div className="message-body">
-          {/* Thinking indicator while waiting for first content token */}
-          {message.isThinking && !message.content && (
-            <div className="thinking-indicator" role="status" aria-label="Thinking">
-              <span className="thinking-dot"></span>
-              <span className="thinking-dot"></span>
-              <span className="thinking-dot"></span>
-              <span className="thinking-text font-mono">Thinking...</span>
-            </div>
-          )}
+        {/* Content with rich markdown */}
+        {message.content && (
+          <MarkdownRenderer content={message.content} />
+        )}
 
-          {/* User message is rendered cleanly as paragraphs */}
-          {isUser && (
-            <div className="user-message-text">
-              {message.content.split('\n').map((line, idx) => (
-                <p key={idx}>{line || '\u00A0'}</p>
-              ))}
-            </div>
-          )}
+        {/* Streaming Blink Cursor */}
+        {message.isStreaming && <span className="cur" aria-hidden="true" />}
 
-          {/* Assistant message with full Markdown & CodeBlock rendering */}
-          {!isUser && message.content && (
-            <div className="assistant-content">
-              <MarkdownRenderer content={message.content} />
-              {message.isStreaming && (
-                <span className="streaming-cursor" aria-hidden="true"></span>
-              )}
-            </div>
-          )}
+        {/* Error message */}
+        {message.error && (
+          <div className="msg-error" role="alert">
+            {message.error}
+          </div>
+        )}
 
-          {/* Generation Error State */}
-          {message.error && (
-            <div className="message-error-banner" role="alert">
-              <svg className="error-icon" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 10.5a.75.75 0 110-1.5.75.75 0 010 1.5zM8 4a.75.75 0 01.75.75v4a.75.75 0 01-1.5 0v-4A.75.75 0 018 4z" />
+        {/* Action buttons (Copy, Read aloud) */}
+        {!message.isStreaming && message.content && (
+          <div className="acts">
+            <button type="button" onClick={handleCopy} aria-label="Copy response">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="11" height="11" rx="2.5" />
+                <path d="M5 15V6a2 2 0 0 1 2-2h8" />
               </svg>
-              <span>{message.error}</span>
-            </div>
-          )}
-        </div>
+              {copied ? 'Copied' : 'Copy'}
+            </button>
 
-        {/* Action Row for Assistant responses */}
-        {!isUser && message.content && !message.isStreaming && (
-          <div className="message-actions">
-            {voiceState && (
-              <button
-                className={`action-btn font-mono ${voiceState.activePlayingId === message.id ? 'playing' : ''}`}
-                onClick={() => {
-                  if (voiceState.activePlayingId === message.id) {
-                    voiceState.stopPlayback();
-                  } else {
-                    voiceState.speakMessage(message.id, message.content);
-                  }
-                }}
-                aria-label={voiceState.activePlayingId === message.id ? 'Stop audio playback' : 'Play spoken response'}
-                title={voiceState.activePlayingId === message.id ? 'Stop audio' : 'Listen with Kokoro TTS'}
-                type="button"
-              >
-                {voiceState.activePlayingId === message.id ? (
-                  <>
-                    <svg className="action-icon" viewBox="0 0 16 16" fill="currentColor">
-                      <rect x="3" y="3" width="10" height="10" rx="1.5" />
-                    </svg>
-                    <span>Stop</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="action-icon" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M11.559 1.44a.75.75 0 00-1.06 1.06 5.5 5.5 0 010 7.78.75.75 0 101.06 1.06 7 7 0 000-9.9z" />
-                      <path d="M7 3.25v9.5a.75.75 0 01-1.28.53L3.18 10.75H1.5A1.5 1.5 0 010 9.25v-2.5A1.5 1.5 0 011.5 5.25h1.68l2.54-2.53A.75.75 0 017 3.25z" />
-                    </svg>
-                    <span>Speak</span>
-                  </>
-                )}
-              </button>
-            )}
-
-            <button
-              className={`action-btn font-mono ${copied ? 'copied' : ''}`}
-              onClick={handleCopy}
-              aria-label={copied ? 'Response copied to clipboard' : 'Copy response to clipboard'}
-              title="Copy response"
-            >
-              {copied ? (
-                <>
-                  <svg className="action-icon" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
-                  </svg>
-                  <span>Copied</span>
-                </>
-              ) : (
-                <>
-                  <svg className="action-icon" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" />
-                    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" />
-                  </svg>
-                  <span>Copy</span>
-                </>
-              )}
+            <button type="button" onClick={handleSpeak} aria-label="Read reply aloud">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 5 6 9H3v6h3l5 4V5z" />
+                <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+              </svg>
+              Read aloud
             </button>
           </div>
         )}

@@ -8,7 +8,9 @@ import { authService } from '../services/authService.js';
  */
 export function requireAuth(req, res, next) {
   const cookieName = config.auth.sessionCookieName;
-  const token = req.cookies?.[cookieName];
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+  const token = req.cookies?.[cookieName] || bearerToken;
 
   if (!token) {
     return res.status(401).json({
@@ -51,7 +53,9 @@ export function requireAuth(req, res, next) {
  */
 export function optionalAuth(req, res, next) {
   const cookieName = config.auth.sessionCookieName;
-  const token = req.cookies?.[cookieName];
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+  const token = req.cookies?.[cookieName] || bearerToken;
 
   if (token) {
     const user = authService.getUserBySessionToken(token);

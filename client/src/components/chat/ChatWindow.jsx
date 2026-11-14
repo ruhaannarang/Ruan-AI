@@ -9,6 +9,8 @@ export default function ChatWindow({
   activeConversation,
   isGenerating,
   voiceState,
+  selectedProvider,
+  onSelectProvider,
   onSendMessage,
   onStopGeneration,
   onCreateNewChat,
@@ -66,7 +68,11 @@ export default function ChatWindow({
           )}
 
           {/* Model Status Pill & Popover */}
-          <ModelStatus onOpenDiagnostics={onOpenDiagnostics} />
+          <ModelStatus
+            selectedProvider={selectedProvider}
+            onSelectProvider={onSelectProvider}
+            onOpenDiagnostics={onOpenDiagnostics}
+          />
 
           {/* Voice & Hinglish Benchmark Button */}
           {onOpenBenchmark && (
