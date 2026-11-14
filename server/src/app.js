@@ -6,6 +6,7 @@ import healthRoutes from './routes/healthRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import voiceRoutes from './routes/voiceRoutes.js';
+import imageRoutes from './routes/imageRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -20,8 +21,9 @@ app.use(
   })
 );
 
-// Body and Cookie parsers
-app.use(express.json());
+// Body and Cookie parsers (Support up to 50MB for image & document payloads)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
 
 // Request logging in development
@@ -37,6 +39,7 @@ app.use('/api/health', healthRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/voice', voiceRoutes);
+app.use('/api/image', imageRoutes);
 
 // Fallback 404 handler
 app.use((req, res) => {

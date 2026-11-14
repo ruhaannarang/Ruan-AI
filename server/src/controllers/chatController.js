@@ -1,6 +1,9 @@
 import crypto from 'crypto';
+import { config } from '../config/index.js';
 import { llmCoordinator } from '../services/llmCoordinator.js';
 import { StreamingTTSCoordinator } from '../services/voice/streamingTtsCoordinator.js';
+import { DocumentParserService } from '../services/documentParserService.js';
+import { imageGenerationService } from '../services/imageGenerationService.js';
 
 /**
  * Server-side registry of in-flight generation AbortControllers.
@@ -13,6 +16,98 @@ const ALLOWED_ROLES = new Set(['system', 'user', 'assistant']);
 const MAX_MESSAGE_LENGTH = 65536; // 64 KB per message safety limit
 
 export const DEFAULT_SYSTEM_INSTRUCTION = 'You are Ruan AI, a personal AI assistant. Keep all responses short, simple, and easy to understand, just like a natural, real-life conversation. Avoid long explanations, fluff, or walls of text. Never use emojis in your responses so speech stays clean and natural. When given a direct task, instruction, or command to do something, start with "Yes boss". For questions, greetings, or explanations, answer directly without saying "Yes boss".';
+
+/**
+ * Detects whether a user prompt is asking to generate an image from scratch.
+ * @param {string} text
+ * @returns {{ isMatch: boolean, prompt?: string }}
+ */
+function isImageGenerationPrompt(text = '') {
+  if (!text || typeof text !== 'string') return { isMatch: false };
+  const trimmed = text.trim();
+  if (trimmed.startsWith('/image') || trimmed.startsWith('/imagine') || trimmed.startsWith('/draw')) {
+    const clean = trimmed.replace(/^\/(image|imagine|draw)\s*/i, '').trim();
+    return { isMatch: true, prompt: clean || 'A creative artwork' };
+  }
+  const pattern = /^(?:please\s+)?(?:generate|create|draw|make|paint)\s+(?:an?\s+)?(?:image|picture|photo|illustration|drawing|artwork|art|graphic)\s+(?:of|showing|about|for)\s+(.+)$/i;
+  const match = trimmed.match(pattern);
+  if (match && match[1]) {
+    return { isMatch: true, prompt: match[1].trim() };
+  }
+  return { isMatch: false };
+}
+
+/**
+ * Detects whether a user prompt is asking to edit or modify an existing image.
+ * @param {string} text
+ * @param {boolean} [hasImageAttachment=false]
+ * @returns {{ isMatch: boolean, prompt?: string }}
+ */
+function isImageEditPrompt(text = '', hasImageAttachment = false) {
+  if (!text || typeof text !== 'string') return { isMatch: false };
+  const trimmed = text.trim();
+
+  // 1. Explicit edit slash commands (/edit, /img2img, /modify, /transform, /restyle, /style)
+  const editSlashMatch = trimmed.match(/^\/(edit|img2img|modify|transform|restyle|style)\s*(.*)$/i);
+  if (editSlashMatch) {
+    return {
+      isMatch: true,
+      prompt: editSlashMatch[2].trim() || 'Enhance and transform this image'
+    };
+  }
+
+  // 2. /image, /imagine, /draw with an attached image is an edit/img2img request
+  const imgSlashMatch = trimmed.match(/^\/(image|imagine|draw)\s*(.*)$/i);
+  if (imgSlashMatch && hasImageAttachment) {
+    return {
+      isMatch: true,
+      prompt: imgSlashMatch[2].trim() || 'Enhance and transform this image'
+    };
+  }
+
+  // If no image is attached, only prompts explicitly mentioning an image count
+  const mentionsImage = /\b(?:this|the|attached)\s+(?:image|photo|picture|pic|graphic)\b/i.test(trimmed);
+  if (!hasImageAttachment && !mentionsImage) {
+    return { isMatch: false };
+  }
+
+  // 3. Reject pure informational vision queries (e.g. "what is in this photo?")
+  const isQuestion = /^(?:what|who|where|when|why|how many|is this|are there|can you (?:read|see|describe|explain|tell me)|describe|explain|read|transcribe|analyze|analyse|summarize)\b/i.test(trimmed);
+  if (isQuestion && !/\b(?:edit|change|transform|convert|redraw|turn into|make it look|recolor|add\s+.+?\s+(?:to|in|with))\b/i.test(trimmed)) {
+    return { isMatch: false };
+  }
+
+  // Clean prompt in case it starts with /image
+  const cleanText = trimmed.replace(/^\/(image|imagine|draw)\s*/i, '');
+
+  // 4. Natural language editing patterns
+  const editPatterns = [
+    /^(?:can you\s+)?(?:please\s+)?(?:edit|modify|redraw|stylize|recolor|touch up|retouch)\s+(?:this|the)?\s*(?:image|photo|pic|picture)?\s*[:,-]?\s*(.+)$/i,
+    /^(?:can you\s+)?(?:please\s+)?(?:turn|convert|transform|change)\s+(?:this|the|it)\s+(?:image|photo|pic|picture)?\s*(?:in)?to\s+(.+)$/i,
+    /^(?:can you\s+)?(?:please\s+)?change\s+(?:the\s+)?(?:background|color|colors|style|lighting|hair|clothes|outfit|setting|face)\s*(?:to|into|with)?\s*(.+)$/i,
+    /^(?:can you\s+)?(?:please\s+)?make\s+(?:this|the|it)\s+(?:image|photo|pic|picture)?\s*(?:look\s+like|into)\s+(.+)$/i,
+    /^(?:can you\s+)?(?:please\s+)?make\s+(?:some\s+)?changes?\s+(?:to|in)\s+(?:this|the)\s+(?:image|photo|pic|picture)\s*[:,-]?\s*(.+)$/i,
+    /^(?:can you\s+)?(?:please\s+)?add\s+(.+)$/i,
+    /^(?:can you\s+)?(?:please\s+)?put\s+(.+)$/i,
+    /^(?:can you\s+)?(?:please\s+)?insert\s+(.+)$/i,
+    /^(?:can you\s+)?(?:please\s+)?remove\s+(.+)$/i,
+    /^(?:can you\s+)?(?:please\s+)?replace\s+(.+)$/i
+  ];
+
+  for (const pattern of editPatterns) {
+    const match = cleanText.match(pattern);
+    if (match) {
+      return { isMatch: true, prompt: (match[1] || cleanText).trim() };
+    }
+  }
+
+  // Catch phrases like "edit this image", "make changes in this image", "modify this photo"
+  if (/\b(?:edit|modify|transform|restyle|recolor)\s+(?:this|the)\s+(?:image|photo|picture)\b/i.test(cleanText)) {
+    return { isMatch: true, prompt: cleanText };
+  }
+
+  return { isMatch: false };
+}
 
 /**
  * Helper to write a Server-Sent Event to the Express response.
@@ -52,11 +147,19 @@ function validateChatPayload(body) {
         error: `Message at index ${i} has invalid role '${msg.role}'. Allowed roles: system, user, assistant`
       };
     }
-    if (typeof msg.content !== 'string' || msg.content.trim().length === 0) {
-      return { valid: false, error: `Message at index ${i} must contain a non-empty string in 'content'` };
+    const isStringContent = typeof msg.content === 'string' && msg.content.trim().length > 0;
+    const isArrayContent = Array.isArray(msg.content) && msg.content.length > 0;
+    if (!isStringContent && !isArrayContent) {
+      return { valid: false, error: `Message at index ${i} must contain non-empty 'content' (string or multimodal parts array)` };
     }
-    if (msg.content.length > MAX_MESSAGE_LENGTH) {
+    if (isStringContent && msg.content.length > MAX_MESSAGE_LENGTH) {
       return { valid: false, error: `Message at index ${i} exceeds maximum length limit of ${MAX_MESSAGE_LENGTH} characters` };
+    }
+  }
+
+  if (body.attachments !== undefined) {
+    if (!Array.isArray(body.attachments)) {
+      return { valid: false, error: "'attachments' must be an array of attachment objects" };
     }
   }
 
@@ -175,12 +278,238 @@ export async function streamChat(req, res, next) {
       formattedMessages[systemIndex] = { role: 'system', content: DEFAULT_SYSTEM_INSTRUCTION };
     }
 
+    // Process attachments if provided
+    const incomingAttachments = Array.isArray(req.body.attachments) ? req.body.attachments : [];
+    let effectiveModel = model;
+    let effectiveProvider = provider;
+
+    if (incomingAttachments.length > 0) {
+      const lastUserIndex = formattedMessages.map(m => m.role).lastIndexOf('user');
+      const basePrompt = lastUserIndex !== -1 && typeof formattedMessages[lastUserIndex].content === 'string'
+        ? formattedMessages[lastUserIndex].content
+        : '';
+
+      const processed = await DocumentParserService.processAttachmentsForChat(basePrompt, incomingAttachments);
+
+      if (lastUserIndex !== -1) {
+        if (processed.images.length > 0) {
+          formattedMessages[lastUserIndex] = {
+            role: 'user',
+            content: processed.formattedContent
+          };
+
+          // Route to vision model for images when using NVIDIA NIM
+          const resolved = llmCoordinator.resolveProvider(effectiveProvider);
+          if (resolved === 'nvidia_nim' && !model) {
+            effectiveModel = config.nvidiaNim.visionModel;
+          }
+        } else {
+          formattedMessages[lastUserIndex] = {
+            role: 'user',
+            content: processed.formattedContent
+          };
+        }
+      }
+    }
+
+    // Check if the user prompt is an Image Edit or Image Generation request
+    const lastUserMsg = formattedMessages.filter(m => m.role === 'user').pop();
+    const promptText = typeof lastUserMsg?.content === 'string'
+      ? lastUserMsg.content
+      : Array.isArray(lastUserMsg?.content)
+        ? (lastUserMsg.content.find(p => p.type === 'text')?.text || '')
+        : '';
+
+    const attachedImage = incomingAttachments.find(a =>
+      (a.type && a.type.startsWith('image/')) || (a.dataUrl && a.dataUrl.startsWith('data:image/'))
+    );
+    const hasImageAttachment = Boolean(attachedImage);
+
+    // 1. Image Edit / img2img Check
+    const imgEditMatch = isImageEditPrompt(promptText, hasImageAttachment);
+    const imgGenMatch = isImageGenerationPrompt(promptText);
+    const shouldEdit = imgEditMatch.isMatch || (imgGenMatch.isMatch && hasImageAttachment);
+    const activeEditPrompt = imgEditMatch.isMatch
+      ? imgEditMatch.prompt
+      : (imgGenMatch.isMatch ? imgGenMatch.prompt : promptText);
+
+    if (shouldEdit) {
+      // Set SSE headers
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('Connection', 'keep-alive');
+      res.setHeader('X-Accel-Buffering', 'no');
+      if (typeof res.flushHeaders === 'function') res.flushHeaders();
+      sseStarted = true;
+
+      const chosenImgProvider = req.body.imageProvider || config.imageGen?.provider || 'cloud';
+
+      // Find the source image to edit
+      let targetImage = attachedImage?.dataUrl || null;
+      if (!targetImage) {
+        // Look back through recent conversation history for an image
+        for (let i = formattedMessages.length - 1; i >= 0; i--) {
+          const m = formattedMessages[i];
+          if (Array.isArray(m.content)) {
+            const imgPart = m.content.find(p => p.type === 'image_url' && p.image_url?.url);
+            if (imgPart) {
+              targetImage = imgPart.image_url.url;
+              break;
+            }
+          } else if (typeof m.content === 'string') {
+            const match = m.content.match(/!\[.*?\]\((data:image\/[a-zA-Z0-9+/=;,-]+|https?:\/\/[^\s)]+)\)/);
+            if (match && match[1]) {
+              targetImage = match[1];
+              break;
+            }
+          }
+        }
+      }
+
+      if (!targetImage) {
+        // No image available to modify
+        sendSSE(res, 'init', {
+          requestId,
+          model: 'assistant',
+          provider: 'system'
+        });
+
+        const helpMsg = 'Yes boss, please attach an image first using the paperclip button, then describe how you would like me to modify it.';
+        for (let i = 0; i < helpMsg.length; i += 12) {
+          sendSSE(res, 'token', { token: helpMsg.slice(i, i + 12), finish_reason: null });
+        }
+
+        sendSSE(res, 'done', {
+          requestId,
+          model: 'assistant',
+          finish_reason: 'stop',
+          totalTokens: Math.ceil(helpMsg.length / 4)
+        });
+
+        isCompletedNormally = true;
+        cleanup();
+        res.end();
+        return;
+      }
+
+      sendSSE(res, 'init', {
+        requestId,
+        model: `image-edit-${chosenImgProvider}`,
+        provider: chosenImgProvider
+      });
+
+      sendSSE(res, 'status', {
+        status: 'thinking',
+        message: `Modifying image with ${chosenImgProvider === 'local' ? 'Local RTX 3050 GPU' : 'Flux Cloud'}...`
+      });
+
+      try {
+        const editResult = await imageGenerationService.editImage({
+          image: targetImage,
+          prompt: activeEditPrompt,
+          provider: chosenImgProvider
+        });
+
+        const replyMarkdown = `Yes boss, here is your edited image:\n\n![${activeEditPrompt}](${editResult.imageUrl})\n\n*Edited with ${editResult.provider === 'local' ? 'Local RTX 3050 Stable Diffusion' : 'Flux (Cloud)'} in ${(editResult.durationMs / 1000).toFixed(1)}s*`;
+
+        const chunkSize = 12;
+        for (let i = 0; i < replyMarkdown.length; i += chunkSize) {
+          if (abortController.signal.aborted) break;
+          const token = replyMarkdown.slice(i, i + chunkSize);
+          sendSSE(res, 'token', { token, finish_reason: null });
+        }
+
+        sendSSE(res, 'done', {
+          requestId,
+          model: `image-edit-${chosenImgProvider}`,
+          finish_reason: 'stop',
+          totalTokens: Math.ceil(replyMarkdown.length / 4)
+        });
+
+        isCompletedNormally = true;
+        cleanup();
+        res.end();
+        return;
+      } catch (editErr) {
+        sendSSE(res, 'error', {
+          message: `Image editing failed: ${editErr.message}`,
+          code: editErr.code || 'IMAGE_EDIT_FAILED'
+        });
+        isCompletedNormally = true;
+        cleanup();
+        res.end();
+        return;
+      }
+    }
+
+    // 2. Image Generation from scratch Check
+    if (imgGenMatch.isMatch && incomingAttachments.length === 0) {
+      // Set SSE headers
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('Connection', 'keep-alive');
+      res.setHeader('X-Accel-Buffering', 'no');
+      if (typeof res.flushHeaders === 'function') res.flushHeaders();
+      sseStarted = true;
+
+      const chosenImgProvider = req.body.imageProvider || config.imageGen?.provider || 'cloud';
+
+      sendSSE(res, 'init', {
+        requestId,
+        model: `image-gen-${chosenImgProvider}`,
+        provider: chosenImgProvider
+      });
+
+      sendSSE(res, 'status', {
+        status: 'thinking',
+        message: `Generating image with ${chosenImgProvider === 'local' ? 'Local RTX 3050 GPU' : 'Flux Cloud'}...`
+      });
+
+      try {
+        const genResult = await imageGenerationService.generateImage({
+          prompt: imgGenMatch.prompt,
+          provider: chosenImgProvider
+        });
+
+        const imgDisplayUrl = genResult.directUrl || genResult.imageUrl;
+        const replyMarkdown = `Yes boss, here is your generated image of "${imgGenMatch.prompt}":\n\n![${imgGenMatch.prompt}](${imgDisplayUrl})\n\n*Generated with ${genResult.provider === 'local' ? 'Local RTX 3050 Stable Diffusion' : 'Flux (Cloud)'} in ${(genResult.durationMs / 1000).toFixed(1)}s*`;
+
+        const chunkSize = 12;
+        for (let i = 0; i < replyMarkdown.length; i += chunkSize) {
+          if (abortController.signal.aborted) break;
+          const token = replyMarkdown.slice(i, i + chunkSize);
+          sendSSE(res, 'token', { token, finish_reason: null });
+        }
+
+        sendSSE(res, 'done', {
+          requestId,
+          model: `image-gen-${chosenImgProvider}`,
+          finish_reason: 'stop',
+          totalTokens: Math.ceil(replyMarkdown.length / 4)
+        });
+
+        isCompletedNormally = true;
+        cleanup();
+        res.end();
+        return;
+      } catch (genErr) {
+        sendSSE(res, 'error', {
+          message: `Image generation failed: ${genErr.message}`,
+          code: genErr.code || 'IMAGE_GEN_FAILED'
+        });
+        isCompletedNormally = true;
+        cleanup();
+        res.end();
+        return;
+      }
+    }
+
     const { stream, model: activeModel, provider: activeProvider } = await llmCoordinator.streamChatCompletion({
       messages: formattedMessages,
-      model,
+      model: effectiveModel,
       temperature,
       maxTokens: max_tokens,
-      provider,
+      provider: effectiveProvider,
       signal: abortController.signal
     });
 

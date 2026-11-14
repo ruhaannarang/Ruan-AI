@@ -37,9 +37,41 @@ export default function MessageBubble({ message, voiceState, onToast }) {
   };
 
   if (isUser) {
+    const hasAttachments = Array.isArray(message.attachments) && message.attachments.length > 0;
     return (
       <div className="msg user">
-        <div className="bubble">{message.content}</div>
+        <div className="bubble">
+          {hasAttachments && (
+            <div className="msg-attachments-container">
+              {message.attachments.map((att, idx) => {
+                const isImage = att.type?.startsWith('image/') || (att.name && /\.(png|jpe?g|webp|gif|bmp)$/i.test(att.name));
+                return isImage ? (
+                  <div key={idx} className="msg-attachment-item image">
+                    <img
+                      src={att.previewUrl || att.data}
+                      alt={att.name || 'Attached image'}
+                      className="msg-attachment-img"
+                    />
+                    <span className="msg-attachment-filename">{att.name}</span>
+                  </div>
+                ) : (
+                  <div key={idx} className="msg-attachment-item document">
+                    <span className="msg-doc-icon">📄</span>
+                    <div className="msg-doc-info">
+                      <span className="msg-doc-name">{att.name}</span>
+                      {att.size && (
+                        <span className="msg-doc-size">
+                          {(att.size / 1024).toFixed(0)} KB
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {message.content && <div className="msg-text-content">{message.content}</div>}
+        </div>
       </div>
     );
   }

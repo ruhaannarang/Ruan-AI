@@ -146,3 +146,70 @@
 .md-table tr:hover td {
   background: rgba(255, 255, 255, 0.02);
 }
+
+/* Markdown Image Cards */
+.md-image-card {
+  display: flex;
+  flex-direction: column;
+  margin: 14px 0;
+  max-width: 520px;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line2);
+  background: rgba(17, 21, 36, 0.85);
+  box-shadow: 0 16px 40px -15px rgba(0, 0, 0, 0.7);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.md-image-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 50px -15px rgba(139, 92, 246, 0.4);
+}
+
+.md-image {
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  object-fit: cover;
+  background: #090B12;
+  display: block;
+}
+
+.md-image-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(23, 28, 47, 0.95);
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+}
+
+.md-image-caption {
+  color: var(--muted, #9296A5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70%;
+  font-style: italic;
+}
+
+.md-image-download-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: #C4B5FD;
+  font-size: 11.5px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.md-image-download-btn:hover {
+  background: var(--violet, #8B5CF6);
+  color: #FFFFFF;
+  border-color: var(--violet, #8B5CF6);
+}

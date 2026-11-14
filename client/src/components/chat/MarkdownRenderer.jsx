@@ -54,8 +54,8 @@ function parseInline(text) {
   if (!text || typeof text !== 'string') return [];
 
   try {
-    // Match: `code`, [text](url), **bold**, *italic*
-    const regex = /(`[^`]+`|\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|__[^_]+__|_[^_]+_)/g;
+    // Match: images ![alt](url), `code`, links [text](url), **bold**, *italic*
+    const regex = /(!\[[^\]]*\]\([^)]+\)|`[^`]+`|\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|__[^_]+__|_[^_]+_)/g;
     const parts = [];
     let lastIndex = 0;
     let match;
@@ -67,7 +67,47 @@ function parseInline(text) {
 
       const token = match[0];
 
-      if (token.startsWith('`') && token.endsWith('`')) {
+      if (token.startsWith('![') && token.includes('](') && token.endsWith(')')) {
+        // Markdown Image: ![alt](url)
+        const closingBracket = token.indexOf('](');
+        const altText = token.slice(2, closingBracket);
+        const imgUrl = token.slice(closingBracket + 2, -1).trim();
+
+        // Safe image URLs: http, https, or base64 image data URLs
+        const isSafeImg = /^https?:\/\//i.test(imgUrl) || /^data:image\/(png|jpe?g|webp|gif|svg\+xml);base64,/i.test(imgUrl);
+
+        if (isSafeImg) {
+          parts.push(
+            <span key={`img_wrap_${match.index}`} className="md-image-card">
+              <img
+                src={imgUrl}
+                alt={altText || 'Generated image'}
+                className="md-image"
+                loading="lazy"
+              />
+              <span className="md-image-bar">
+                <span className="md-image-caption">{altText || 'Generated image'}</span>
+                <a
+                  href={imgUrl}
+                  download={`${(altText || 'ruan-ai-image').replace(/[^a-z0-9_-]/gi, '_')}.png`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="md-image-download-btn"
+                  title="Download image"
+                >
+                  Download
+                </a>
+              </span>
+            </span>
+          );
+        } else {
+          parts.push(
+            <span key={`unsafe_img_${match.index}`} className="md-unsafe-link">
+              Image blocked
+            </span>
+          );
+        }
+      } else if (token.startsWith('`') && token.endsWith('`')) {
         // Inline code
         parts.push(
           <code key={`code_${match.index}`} className="inline-code font-mono">

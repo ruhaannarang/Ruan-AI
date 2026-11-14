@@ -5,6 +5,8 @@ import './ModelStatus.css';
 export default function ModelStatus({
   selectedProvider = 'nvidia_nim',
   onSelectProvider,
+  imageProvider = 'cloud',
+  onSelectImageProvider,
   onOpenDiagnostics
 }) {
   const [healthData, setHealthData] = useState(null);
@@ -143,6 +145,63 @@ export default function ModelStatus({
             </span>
           </span>
           {!isNvidia && (
+            <svg className="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m5 12 5 5 9-10" />
+            </svg>
+          )}
+        </button>
+
+        <div className="sep" />
+
+        {/* Image Generator Engine Selection */}
+        <div className="hint" style={{ padding: '6px 12px 2px', fontWeight: 600, color: 'var(--text, #F4F4F5)', fontSize: '11px', letterSpacing: '0.05em' }}>
+          IMAGE GENERATOR ENGINE
+        </div>
+
+        {/* Cloud Flux Option */}
+        <button
+          type="button"
+          role="menuitemradio"
+          aria-checked={imageProvider === 'cloud'}
+          onClick={() => {
+            onSelectImageProvider && onSelectImageProvider('cloud');
+            setMenuOpen(false);
+          }}
+        >
+          <span className="dot" />
+          <span>
+            Flux (Cloud Engine)
+            <br />
+            <span className="sub" style={{ margin: 0 }}>
+              Instant · 0 VRAM · High Quality Free
+            </span>
+          </span>
+          {imageProvider === 'cloud' && (
+            <svg className="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m5 12 5 5 9-10" />
+            </svg>
+          )}
+        </button>
+
+        {/* Local SD Option */}
+        <button
+          type="button"
+          role="menuitemradio"
+          aria-checked={imageProvider === 'local'}
+          onClick={() => {
+            onSelectImageProvider && onSelectImageProvider('local');
+            setMenuOpen(false);
+          }}
+        >
+          <span className={`dot ${healthData?.services?.imageGen?.local?.available ? '' : 'offline'}`} />
+          <span>
+            Local RTX 3050 (Stable Diffusion)
+            <br />
+            <span className="sub" style={{ margin: 0 }}>
+              {healthData?.services?.imageGen?.local?.available ? 'Local SD Ready · 100% Offline' : 'SD WebUI/Forge (Port 7860)'}
+            </span>
+          </span>
+          {imageProvider === 'local' && (
             <svg className="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <path d="m5 12 5 5 9-10" />
             </svg>

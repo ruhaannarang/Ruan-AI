@@ -28,7 +28,8 @@ export const config = {
     apiKey: process.env.NVIDIA_NIM_API_KEY || '',
     baseUrl: process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1',
     model: process.env.NVIDIA_NIM_MODEL || 'nvidia/nemotron-3.5-bolt-e4b',
-    timeoutMs: parseInt(process.env.NVIDIA_NIM_TIMEOUT_MS || '60000', 10),
+    visionModel: process.env.NVIDIA_NIM_VISION_MODEL || 'nvidia/nemotron-3.5-super-vl-120b-a12b',
+    timeoutMs: parseInt(process.env.NVIDIA_NIM_TIMEOUT_MS || '90000', 10),
     healthTimeoutMs: parseInt(process.env.NVIDIA_NIM_HEALTH_TIMEOUT_MS || '5000', 10)
   },
   voice: {
@@ -50,5 +51,11 @@ export const config = {
     sessionCookieName: process.env.SESSION_COOKIE_NAME || 'ruan_session',
     sessionSecret: process.env.SESSION_SECRET || 'ruan-auth-dev-secret-key-change-in-production',
     sessionMaxAgeMs: parseInt(process.env.SESSION_MAX_AGE_MS || String(7 * 24 * 60 * 60 * 1000), 10)
+  },
+  imageGen: {
+    provider: process.env.IMAGE_GEN_PROVIDER || 'cloud', // 'cloud' | 'local'
+    cloudModel: process.env.IMAGE_GEN_CLOUD_MODEL || 'flux',
+    localUrl: process.env.IMAGE_GEN_LOCAL_URL || 'http://127.0.0.1:7860',
+    timeoutMs: parseInt(process.env.IMAGE_GEN_TIMEOUT_MS || '60000', 10)
   }
 };

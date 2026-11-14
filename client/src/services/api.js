@@ -91,6 +91,7 @@ export async function checkHealth(signal) {
  */
 export async function streamChat({
   messages,
+  attachments,
   temperature,
   maxTokens,
   requestId,
@@ -98,6 +99,7 @@ export async function streamChat({
   voiceOptions,
   provider,
   model,
+  imageProvider,
   signal,
   onStatus,
   onToken,
@@ -166,13 +168,15 @@ export async function streamChat({
       credentials: 'include',
       body: JSON.stringify({
         messages,
+        attachments,
         temperature,
         max_tokens: maxTokens,
         requestId: genRequestId,
         voice: voice === true,
         voiceOptions,
         provider,
-        model
+        model,
+        imageProvider
       }),
       signal
     });
@@ -385,6 +389,40 @@ export async function abortChat(requestId) {
       aborted: false
     };
   }
+}
+
+/**
+ * Direct Image Generation API
+ */
+export async function generateImageDirect({ prompt, provider, model, width, height }) {
+  const response = await fetch(`${BASE_URL}/image/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ prompt, provider, model, width, height })
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error?.message || `Image generation failed (HTTP ${response.status})`);
+  }
+  return await response.json();
+}
+
+/**
+ * Direct Image Editing (img2img) API
+ */
+export async function editImageDirect({ image, prompt, provider, model, strength }) {
+  const response = await fetch(`${BASE_URL}/image/edit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ image, prompt, provider, model, strength })
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error?.message || `Image editing failed (HTTP ${response.status})`);
+  }
+  return await response.json();
 }
 
 /**

@@ -5,6 +5,7 @@ const SYSTEM_INSTRUCTION = 'You are Ruan AI, a personal AI assistant. Keep all r
 const STORAGE_KEY = 'ruan_ai_conversations_v1';
 const ACTIVE_CONV_KEY = 'ruan_ai_active_conv_id';
 const STORAGE_PROVIDER_KEY = 'ruan_ai_selected_provider';
+const STORAGE_IMAGE_PROVIDER_KEY = 'ruan_ai_image_provider';
 
 const VALID_ROLES = new Set(['system', 'user', 'assistant']);
 
@@ -112,6 +113,14 @@ function persistConversationsToStorage(conversations) {
         id: m.id,
         role: m.role,
         content: m.content || '',
+        attachments: Array.isArray(m.attachments)
+          ? m.attachments.map(a => ({
+              name: a.name,
+              type: a.type,
+              size: a.size,
+              previewUrl: a.previewUrl?.length < 150000 ? a.previewUrl : undefined
+            }))
+          : undefined,
         timestamp: m.timestamp,
         isStreaming: false,
         isThinking: false,
@@ -184,6 +193,16 @@ export function useChat(options = {}) {
     return 'local';
   });
 
+  // Selected Image provider: 'cloud' (Flux) | 'local' (RTX 3050 GPU)
+  const [imageProvider, setImageProvider] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        return localStorage.getItem(STORAGE_IMAGE_PROVIDER_KEY) || 'cloud';
+      }
+    } catch {}
+    return 'cloud';
+  });
+
   // Persist selected provider
   useEffect(() => {
     try {
@@ -192,6 +211,15 @@ export function useChat(options = {}) {
       }
     } catch {}
   }, [selectedProvider]);
+
+  // Persist image provider
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_IMAGE_PROVIDER_KEY, imageProvider);
+      }
+    } catch {}
+  }, [imageProvider]);
 
   // References to manage in-flight requests and avoid stale closures
   const activeRequestIdRef = useRef(null);
@@ -357,9 +385,10 @@ export function useChat(options = {}) {
    * Sends a user message and streams assistant response from LM Studio.
    * Strictly isolates updates to targetConvId and ignores late callbacks if aborted.
    */
-  const sendMessage = useCallback(async (content, specificConvId = null) => {
-    const text = content?.trim();
-    if (!text || isGenerating) return;
+  const sendMessage = useCallback(async (content, specificConvId = null, attachments = []) => {
+    const text = content?.trim() || '';
+    const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
+    if ((!text && !hasAttachments) || isGenerating) return;
 
     const targetConvId = specificConvId || activeId;
     const targetConv = conversationsRef.current.find(c => c.id === targetConvId);
@@ -369,10 +398,21 @@ export function useChat(options = {}) {
     const assistantMessageId = `msg_asst_${Date.now() + 1}`;
     const now = Date.now();
 
+    const displayContent = text || (hasAttachments
+      ? (attachments[0].type?.startsWith('image/') ? 'Please analyze this image.' : 'Please analyze this document.')
+      : '');
+
     const userMessage = {
       id: userMessageId,
       role: 'user',
-      content: text,
+      content: displayContent,
+      attachments: hasAttachments ? attachments.map(a => ({
+        name: a.name,
+        type: a.type,
+        size: a.size,
+        data: a.data || a.dataUrl,
+        previewUrl: a.type?.startsWith('image/') ? (a.previewUrl || a.dataUrl) : null
+      })) : undefined,
       timestamp: now
     };
 
@@ -391,7 +431,7 @@ export function useChat(options = {}) {
     setConversations(prev =>
       prev.map(c => {
         if (c.id !== targetConvId) return c;
-        const newTitle = c.title === 'New Chat' ? generateTitle(text) : c.title;
+        const newTitle = c.title === 'New Chat' ? generateTitle(displayContent) : c.title;
         return {
           ...c,
           title: newTitle,
@@ -401,7 +441,7 @@ export function useChat(options = {}) {
       })
     );
 
-    // Prepare payload messages history for LM Studio
+    // Prepare payload messages history for LM Studio / NIM
     // Strictly format roles and user-facing content (never send raw reasoning tokens)
     const history = targetConv.messages
       .filter(m => (m.role === 'user' || m.role === 'assistant') && m.content && !m.error)
@@ -410,7 +450,7 @@ export function useChat(options = {}) {
     const messagesPayload = [
       { role: 'system', content: SYSTEM_INSTRUCTION },
       ...history,
-      { role: 'user', content: text }
+      { role: 'user', content: displayContent }
     ];
 
     const currentRequestId = typeof crypto !== 'undefined' && crypto.randomUUID
@@ -429,11 +469,18 @@ export function useChat(options = {}) {
     try {
       await streamChat({
         messages: messagesPayload,
+        attachments: hasAttachments ? attachments.map(a => ({
+          name: a.name,
+          type: a.type,
+          size: a.size,
+          data: a.data || a.dataUrl
+        })) : undefined,
         requestId: currentRequestId,
         signal: controller.signal,
         voice: optionsRef.current?.isVoiceMode === true,
         voiceOptions: optionsRef.current?.voiceOptions,
         provider: selectedProvider,
+        imageProvider,
 
         // Status event from backend (e.g. 'Thinking...')
         onStatus: (status) => {
@@ -664,6 +711,8 @@ export function useChat(options = {}) {
     generatingConvId,
     selectedProvider,
     setSelectedProvider,
+    imageProvider,
+    setImageProvider,
     setActiveId,
     createNewChat,
     deleteConversation,

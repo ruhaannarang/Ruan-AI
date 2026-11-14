@@ -41,7 +41,9 @@ export default function ChatLayout({
     sendMessage,
     stopGeneration,
     selectedProvider,
-    setSelectedProvider
+    setSelectedProvider,
+    imageProvider,
+    setImageProvider
   } = chatState;
 
   const messages = activeConversation?.messages || [];
@@ -175,6 +177,8 @@ export default function ChatLayout({
           <ModelStatus
             selectedProvider={selectedProvider}
             onSelectProvider={setSelectedProvider}
+            imageProvider={imageProvider}
+            onSelectImageProvider={setImageProvider}
             onOpenDiagnostics={onOpenDiagnostics}
           />
 

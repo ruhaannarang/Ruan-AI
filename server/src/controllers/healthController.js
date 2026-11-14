@@ -3,6 +3,7 @@ import { lmStudioService } from '../services/lmStudioService.js';
 import { nvidiaNimService } from '../services/nvidiaNimService.js';
 import { voiceService } from '../services/voice/voiceService.js';
 import { llmCoordinator } from '../services/llmCoordinator.js';
+import { imageGenerationService } from '../services/imageGenerationService.js';
 
 const startTime = Date.now();
 
@@ -14,10 +15,11 @@ const startTime = Date.now();
 export const getHealth = async (req, res, next) => {
   try {
     const uptimeSeconds = Math.floor((Date.now() - startTime) / 1000);
-    const [lmHealth, nimHealth, voiceHealth] = await Promise.all([
+    const [lmHealth, nimHealth, voiceHealth, imgHealth] = await Promise.all([
       lmStudioService.checkHealth(),
       nvidiaNimService.checkHealth(),
-      voiceService.checkHealth()
+      voiceService.checkHealth(),
+      imageGenerationService.checkHealth()
     ]);
 
     const activeProvider = llmCoordinator.resolveProvider();
@@ -50,7 +52,8 @@ export const getHealth = async (req, res, next) => {
           error: nimHealth.error
         },
         stt: voiceHealth.stt,
-        tts: voiceHealth.tts
+        tts: voiceHealth.tts,
+        imageGen: imgHealth
       }
     };
 
